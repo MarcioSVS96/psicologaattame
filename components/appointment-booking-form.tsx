@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -31,8 +32,10 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
   const [selectedTime, setSelectedTime] = useState<string>("")
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoadingTimes, setIsLoadingTimes] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
   const [errorMessage, setErrorMessage] = useState("")
+  const [timeSlots, setTimeSlots] = useState<string[]>([])
 
   // Generate available time slots (9 AM to 6 PM, excluding lunch 12-1 PM)
   const generateTimeSlots = () => {
@@ -45,12 +48,37 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
           // Don't add 30min slot for last hour
           slots.push(`${hour.toString().padStart(2, "0")}:30`)
         }
+  // Fetch available time slots when a date is selected
+  useEffect(() => {
+    if (!selectedDate) {
+      setTimeSlots([])
+      return
+    }
+
+    const fetchAvailableTimes = async () => {
+      setIsLoadingTimes(true)
+      setSelectedTime("") // Reset selected time
+      try {
+        const dateString = format(selectedDate, "yyyy-MM-dd")
+        // This API route needs to be created to publically expose available slots
+        const response = await fetch(`/api/availability?date=${dateString}`)
+        if (!response.ok) throw new Error("Não foi possível buscar os horários.")
+
+        const data = await response.json()
+        setTimeSlots(data.slots || [])
+      } catch (error) {
+        console.error(error)
+        setTimeSlots([])
+      } finally {
+        setIsLoadingTimes(false)
       }
     }
     return slots
   }
 
   const timeSlots = generateTimeSlots()
+    fetchAvailableTimes()
+  }, [selectedDate])
 
   // Check if date is available (not weekends, not past dates)
   const isDateAvailable = (date: Date) => {
@@ -242,6 +270,27 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
                 </Button>
               ))}
             </div>
+            {isLoadingTimes && <p className="text-center">Buscando horários...</p>}
+            {!isLoadingTimes && timeSlots.length === 0 && (
+              <p className="text-center text-gray-500">Nenhum horário disponível para esta data. Por favor, selecione outro dia.</p>
+            )}
+            {timeSlots.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                {timeSlots.map((time) => (
+                  <Button
+                    key={time}
+                    type="button"
+                    variant={selectedTime === time ? "default" : "outline"}
+                    className={`h-12 ${
+                      selectedTime === time ? "bg-turquoise hover:bg-turquoise/90 text-white" : "bg-transparent hover:bg-turquoise/10"
+                    }`}
+                    onClick={() => setSelectedTime(time)}
+                  >
+                    {time}
+                  </Button>
+                ))}
+              </div>
+            )}
             <p className="text-sm text-gray-500 mt-4">
               Horário de funcionamento: 9h às 18h (pausa para almoço: 12h às 13h)
             </p>
