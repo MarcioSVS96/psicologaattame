@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -12,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search } from "lucide-react"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import Link from "next/link"
+import Link from "next/link" 
 import { format, isToday, isAfter, parseISO, startOfDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import type { User } from "@supabase/supabase-js"
@@ -53,6 +54,18 @@ export function AdminDashboard({
   const [patientToDelete, setPatientToDelete] = useState<any>(null)
   const [isDeletePatientDialogOpen, setIsDeletePatientDialogOpen] = useState(false)
   const [patientSearchQuery, setPatientSearchQuery] = useState("")
+  const [generalSettings, setGeneralSettings] = useState({ 
+    sunday: { start: "09:00", end: "13:00", is_active: false },
+    monday: { start: "09:00", end: "18:00", is_active: true },
+    tuesday: { start: "09:00", end: "18:00", is_active: true },
+    wednesday: { start: "09:00", end: "18:00", is_active: true },
+    thursday: { start: "09:00", end: "18:00", is_active: true },
+    friday: { start: "09:00", end: "18:00", is_active: true },
+    saturday: { start: "09:00", end: "13:00", is_active: true },
+  })
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false)
+  const [editingSettings, setEditingSettings] = useState(generalSettings)
+
 
   // State for availability management
   const [selectedDayForAvailability, setSelectedDayForAvailability] = useState<Date | undefined>(new Date())
@@ -67,7 +80,35 @@ export function AdminDashboard({
 
   // Availability Management
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
-  const allDaySlots = Array.from({ length: 10 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}:00`) // 08:00 to 17:00
+  const dayNames = useMemo(() => ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"], [])
+
+  const allDaySlots = useMemo(() => {
+    if (!selectedDayForAvailability) return []
+
+    const dayOfWeek = selectedDayForAvailability.getDay()
+    const dayKey = dayNames[dayOfWeek] as keyof typeof generalSettings
+    const daySettings = generalSettings[dayKey]
+
+    if (!daySettings.is_active) {
+      return []
+    }
+
+    const slots = []
+    const [startHour, startMinute] = daySettings.start.split(":").map(Number)
+    const [endHour, endMinute] = daySettings.end.split(":").map(Number)
+
+    let currentHour = startHour
+    let currentMinute = startMinute
+
+    while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
+      slots.push(`${currentHour.toString().padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}`)
+
+      // Increment by 60 minutes
+      currentHour += 1
+    }
+
+    return slots
+  }, [selectedDayForAvailability, generalSettings, dayNames])
 
   const updateAppointmentStatus = async (appointmentId: string, status: string, notes?: string) => {
     setLoading(true)
@@ -850,22 +891,119 @@ export function AdminDashboard({
                   <CardTitle className="text-navy">Configurações Gerais</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Horário de Funcionamento</label>
-                    <p className="text-sm text-gray-600">Segunda à Sexta: 9h às 18h</p>
-                    <p className="text-sm text-gray-600">Sábado: 9h às 13h</p>
+                  <div className="space-y-2 rounded-lg bg-gray-50 p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Horário de Funcionamento</h4>
+                    {dayNames.map((day) => {
+                      const dayKey = day as keyof typeof generalSettings
+                      const settings = generalSettings[dayKey]
+                      const dayLabel = {
+                        sunday: "Domingo",
+                        monday: "Segunda-feira",
+                        tuesday: "Terça-feira",
+                        wednesday: "Quarta-feira",
+                        thursday: "Quinta-feira",
+                        friday: "Sexta-feira",
+                        saturday: "Sábado",
+                      }[dayKey]
+
+                      return (
+                        <div key={day} className="flex justify-between text-sm text-gray-600">
+                          <span className="capitalize">{dayLabel}:</span>
+                          <span className="font-medium">
+                            {settings.is_active ? `${settings.start} - ${settings.end}` : "Fechado"}
+                          </span>
+                        </div>
+                      )
+                    })}
                   </div>
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Duração Padrão das Consultas</label>
                     <p className="text-sm text-gray-600">60 minutos</p>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Agendamento Antecipado</label>
-                    <p className="text-sm text-gray-600">Até 30 dias</p>
-                  </div>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    Editar Configurações
-                  </Button>
+                  <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full bg-transparent"
+                        onClick={() => setEditingSettings(generalSettings)}
+                      >
+                        Editar Horários
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Editar Horário de Funcionamento</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
+                        {(Object.keys(editingSettings) as Array<keyof typeof editingSettings>).map((day) => (
+                          <div key={day} className="space-y-3 p-3 bg-gray-50 rounded-md">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor={`switch-${day}`} className="capitalize font-semibold text-navy">
+                                {
+                                  {
+                                    sunday: "Domingo",
+                                    monday: "Segunda-feira",
+                                    tuesday: "Terça-feira",
+                                    wednesday: "Quarta-feira",
+                                    thursday: "Quinta-feira",
+                                    friday: "Sexta-feira",
+                                    saturday: "Sábado",
+                                  }[day]
+                                }
+                              </Label>
+                              <Switch
+                                id={`switch-${day}`}
+                                checked={editingSettings[day].is_active}
+                                onCheckedChange={(checked) =>
+                                  setEditingSettings((prev) => ({
+                                    ...prev,
+                                    [day]: { ...prev[day], is_active: checked },
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Input
+                                type="time"
+                                step="1800" // 30-minute steps
+                                value={editingSettings[day].start}
+                                onChange={(e) =>
+                                  setEditingSettings((prev) => ({
+                                    ...prev,
+                                    [day]: { ...prev[day], start: e.target.value },
+                                  }))
+                                }
+                                disabled={!editingSettings[day].is_active}
+                              />
+                              <span className={!editingSettings[day].is_active ? "text-gray-400" : ""}>até</span>
+                              <Input
+                                type="time"
+                                step="1800" // 30-minute steps
+                                value={editingSettings[day].end}
+                                onChange={(e) =>
+                                  setEditingSettings((prev) => ({
+                                    ...prev,
+                                    [day]: { ...prev[day], end: e.target.value },
+                                  }))
+                                }
+                                disabled={!editingSettings[day].is_active}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        <Button
+                          onClick={() => {
+                            setGeneralSettings(editingSettings)
+                            setIsSettingsDialogOpen(false)
+                          }}
+                          className="w-full bg-turquoise hover:bg-turquoise/90"
+                        >
+                          Salvar Alterações
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </CardContent>
               </Card>
             </div>
