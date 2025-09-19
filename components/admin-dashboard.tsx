@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -11,9 +11,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search } from "lucide-react"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import Link from "next/link"
-import { useRouter } from "next/navigation" 
-import { format, isToday, isAfter, parseISO } from "date-fns"
+import { format, isToday, isAfter, parseISO, startOfDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import type { User } from "@supabase/supabase-js"
 
@@ -54,6 +54,9 @@ export function AdminDashboard({
   const [isDeletePatientDialogOpen, setIsDeletePatientDialogOpen] = useState(false)
   const [patientSearchQuery, setPatientSearchQuery] = useState("")
 
+  // State for availability management
+  const [selectedDayForAvailability, setSelectedDayForAvailability] = useState<Date | undefined>(new Date())
+
   const [newService, setNewService] = useState({
     title: "",
     description: "",
@@ -62,6 +65,9 @@ export function AdminDashboard({
     is_active: true,
   })
 
+  // Availability Management
+  const [availableSlots, setAvailableSlots] = useState<string[]>([])
+  const allDaySlots = Array.from({ length: 10 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}:00`) // 08:00 to 17:00
 
   const updateAppointmentStatus = async (appointmentId: string, status: string, notes?: string) => {
     setLoading(true)
@@ -212,6 +218,64 @@ export function AdminDashboard({
     }
   }
 
+  // Fetch availability for a selected day
+  useEffect(() => {
+    if (!selectedDayForAvailability) return
+
+    const fetchAvailability = async () => {
+      setLoading(true)
+      const dateString = format(selectedDayForAvailability, "yyyy-MM-dd")
+      try {
+        const response = await fetch(`/api/admin/availability?date=${dateString}`)
+        if (response.ok) {
+          const { slots } = await response.json()
+          setAvailableSlots(slots.sort())
+        } else {
+          console.error("Failed to fetch availability")
+          setAvailableSlots([])
+        }
+      } catch (error) {
+        console.error("Error fetching availability:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAvailability()
+  }, [selectedDayForAvailability])
+
+  // Update availability (add/remove slots)
+  const updateAvailability = async (newSlots: string[]) => {
+    if (!selectedDayForAvailability) return
+    setLoading(true)
+    const dateString = format(selectedDayForAvailability, "yyyy-MM-dd")
+    try {
+      const response = await fetch("/api/admin/availability", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: dateString, slots: newSlots }),
+      })
+      if (response.ok) {
+        setAvailableSlots(newSlots.sort())
+      } else {
+        console.error("Failed to update availability")
+        // TODO: Show error toast
+      }
+    } catch (error) {
+      console.error("Error updating availability:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleToggleSlot = (slot: string) => {
+    const newSlots = availableSlots.includes(slot)
+      ? availableSlots.filter((s) => s !== slot)
+      : [...availableSlots, slot]
+
+    // We call updateAvailability directly to save the change
+    updateAvailability(newSlots)
+  }
 
   // Calculate metrics
   const todayAppointments = appointments.filter((apt) => isToday(new Date(apt.appointment_date)))
@@ -437,125 +501,74 @@ export function AdminDashboard({
 
           {/* Appointments Tab */}
           <TabsContent value="appointments" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-navy">Gerenciar Consultas</h2>
-              <Button className="bg-turquoise hover:bg-turquoise/90 text-white">Nova Consulta</Button>
-            </div>
-
             <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Data/Hora
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Paciente
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Serviço
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Ações
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {appointments.map((appointment) => (
-                        <tr key={appointment.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-navy font-medium">
-                              {format(new Date(appointment.appointment_date), "dd/MM/yyyy")}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {format(new Date(appointment.appointment_date), "HH:mm")}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {appointment.profiles?.full_name || "Nome não informado"}
-                            </div>
-                            <div className="text-sm text-gray-500">{appointment.profiles?.phone}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{appointment.services.title}</div>
-                            <div className="text-sm text-gray-500">{appointment.services.duration_minutes} min</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(appointment.status)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button size="sm" variant="outline" onClick={() => setEditingAppointment(appointment)}>
-                                  <Edit className="h-4 w-4 mr-1" />
-                                  Editar
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Editar Consulta</DialogTitle>
-                                </DialogHeader>
-                                {editingAppointment && (
-                                  <div className="space-y-4">
-                                    <div>
-                                      <Label>Status</Label>
-                                      <Select
-                                        value={editingAppointment.status}
-                                        onValueChange={(value) =>
-                                          setEditingAppointment({ ...editingAppointment, status: value })
-                                        }
-                                      >
-                                        <SelectTrigger>
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="scheduled">Agendada</SelectItem>
-                                          <SelectItem value="confirmed">Confirmada</SelectItem>
-                                          <SelectItem value="completed">Concluída</SelectItem>
-                                          <SelectItem value="cancelled">Cancelada</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div>
-                                      <Label>Observações</Label>
-                                      <Textarea
-                                        value={editingAppointment.notes || ""}
-                                        onChange={(e) =>
-                                          setEditingAppointment({ ...editingAppointment, notes: e.target.value })
-                                        }
-                                        placeholder="Adicione observações sobre a consulta..."
-                                      />
-                                    </div>
-                                    <Button
-                                      onClick={() =>
-                                        updateAppointmentStatus(
-                                          editingAppointment.id,
-                                          editingAppointment.status,
-                                          editingAppointment.notes,
-                                        )
-                                      }
-                                      disabled={loading}
-                                      className="w-full bg-turquoise hover:bg-turquoise/90"
-                                    >
-                                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                      Salvar Alterações
-                                    </Button>
-                                  </div>
-                                )}
-                              </DialogContent>
-                            </Dialog>
-                          </td>
-                        </tr>
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-navy">Gerenciar Disponibilidade</CardTitle>
+                <p className="text-gray-600">Selecione um dia no calendário e habilite os horários de atendimento.</p>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-2 gap-8 items-start">
+                {/* Calendar Column */}
+                <div className="flex justify-center pt-4">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDayForAvailability}
+                    onSelect={setSelectedDayForAvailability}
+                    className="rounded-md border"
+                    locale={ptBR}
+                    disabled={(date) => date < startOfDay(new Date())}
+                  />
+                </div>
+
+                {/* Availability Management Column */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-navy">
+                    Horários para o dia{" "}
+                    {selectedDayForAvailability
+                      ? format(selectedDayForAvailability, "dd/MM/yyyy")
+                      : "Nenhum dia selecionado"}
+                  </h3>
+                  {loading ? (
+                    <div className="flex justify-center items-center h-32">
+                      <Loader2 className="h-8 w-8 animate-spin text-turquoise" />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                      {allDaySlots.map((slot) => (
+                        <Button
+                          key={slot}
+                          variant={availableSlots.includes(slot) ? "default" : "outline"}
+                          className={`h-12 ${availableSlots.includes(slot) ? "bg-turquoise hover:bg-turquoise/90" : ""}`}
+                          onClick={() => handleToggleSlot(slot)}
+                        >
+                          {slot}
+                        </Button>
                       ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+            <div className="mt-8">
+              <h3 className="text-xl font-bold text-navy mb-4">Próximas Consultas Agendadas</h3>
+              <div className="space-y-4">
+                {upcomingAppointments.map((appointment) => (
+                  <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="space-y-1">
+                      <p className="font-medium text-navy">
+                        {format(new Date(appointment.appointment_date), "dd/MM/yyyy 'às' HH:mm")} - {appointment.services.title}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Paciente: {appointment.profiles?.full_name || "Nome não informado"}
+                      </p>
+                    </div>
+                    {getStatusBadge(appointment.status)}
+                  </div>
+                ))}
+                {upcomingAppointments.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">Nenhuma consulta futura agendada.</p>
+                )}
+              </div>
+            </div>
           </TabsContent>
 
           {/* Patients Tab */}
@@ -605,110 +618,40 @@ export function AdminDashboard({
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                        <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setViewingPatientHistory(patient)
-                                setIsHistoryDialogOpen(true)
-                              }}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Histórico
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>Histórico de Consultas: {viewingPatientHistory?.full_name}</DialogTitle>
-                            </DialogHeader>
-                            <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-2">
-                              {viewingPatientHistory && getPatientAppointments(viewingPatientHistory.id).length > 0 ? (
-                                getPatientAppointments(viewingPatientHistory.id).map((apt) => (
-                                  <div key={apt.id} className="p-3 bg-gray-50 rounded-md flex justify-between items-center">
-                                    <div>
-                                      <p className="font-medium">{apt.services.title}</p>
-                                      <p className="text-sm text-gray-600">{format(parseISO(apt.appointment_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
-                                    </div>
-                                    {getStatusBadge(apt.status)}
-                                  </div>
-                                ))
-                              ) : (
-                                <p className="text-center text-gray-500 py-4">Nenhuma consulta encontrada.</p>
-                              )}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setViewingPatientHistory(patient)
+                            setIsHistoryDialogOpen(true)
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Histórico
+                        </Button>
 
-                        <Dialog open={isDeletePatientDialogOpen} onOpenChange={setIsDeletePatientDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => {
-                                setPatientToDelete(patient)
-                                setIsDeletePatientDialogOpen(true)
-                              }}
-                            >
-                              Excluir
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Confirmar Exclusão</DialogTitle>
-                            </DialogHeader>
-                            {patientToDelete && (
-                              <div className="space-y-4">
-                                <p>
-                                  Você tem certeza que deseja excluir o paciente{" "}
-                                  <span className="font-bold">{patientToDelete.full_name}</span>?
-                                </p>
-                                <p className="text-sm font-medium text-red-600">
-                                  Esta ação é irreversível e removerá o usuário e todos os seus dados associados.
-                                </p>
-                                <Button onClick={() => deletePatient(patientToDelete.id)} disabled={loading} variant="destructive" className="w-full">
-                                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                  Sim, excluir paciente
-                                </Button>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            setPatientToDelete(patient)
+                            setIsDeletePatientDialogOpen(true)
+                          }}
+                        >
+                          Excluir
+                        </Button>
 
-                        <Dialog open={isEditPatientDialogOpen} onOpenChange={setIsEditPatientDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditingPatient(patient)
-                                setIsEditPatientDialogOpen(true)
-                              }}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Editar
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Editar Paciente</DialogTitle>
-                            </DialogHeader>
-                            {editingPatient && (
-                              <div className="space-y-4">
-                                <div>
-                                  <Label>Nome Completo</Label>
-                                  <Input value={editingPatient.full_name} onChange={(e) => setEditingPatient({ ...editingPatient, full_name: e.target.value })} />
-                                </div>
-                                <div>
-                                  <Label>Telefone</Label>
-                                  <Input value={editingPatient.phone || ""} onChange={(e) => setEditingPatient({ ...editingPatient, phone: e.target.value })} />
-                                </div>
-                                <Button onClick={() => updatePatient(editingPatient.id, editingPatient)} disabled={loading} className="w-full bg-turquoise hover:bg-turquoise/90">Salvar Alterações</Button>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingPatient(patient)
+                            setIsEditPatientDialogOpen(true)
+                          }}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Editar
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -927,6 +870,97 @@ export function AdminDashboard({
               </Card>
             </div>
           </TabsContent>
+
+          {/* Messages Tab is missing its content block, but let's close the main component correctly first */}
+          <TabsContent value="messages" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-navy">Mensagens de Contato</h2>
+              <div className="text-sm text-gray-600">{unreadMessages.length} não lidas</div>
+            </div>
+
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <Card key={message.id} className={message.status === "unread" ? "border-turquoise" : ""}>
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-navy">{message.subject}</h3>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <span>{message.name}</span>
+                          <span>{message.email}</span>
+                          {message.phone && <span>{message.phone}</span>}
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {getMessageStatusBadge(message.status)}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" onClick={() => setEditingMessage(message)}>
+                              Responder
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Responder Mensagem</DialogTitle>
+                            </DialogHeader>
+                            {editingMessage && (
+                              <div className="space-y-4">
+                                <div>
+                                  <Label>Status</Label>
+                                  <Select
+                                    value={editingMessage.status}
+                                    onValueChange={(value) => setEditingMessage({ ...editingMessage, status: value })}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="unread">Não lida</SelectItem>
+                                      <SelectItem value="read">Lida</SelectItem>
+                                      <SelectItem value="replied">Respondida</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label>Observações Administrativas</Label>
+                                  <Textarea
+                                    value={editingMessage.admin_notes || ""}
+                                    onChange={(e) =>
+                                      setEditingMessage({ ...editingMessage, admin_notes: e.target.value })
+                                    }
+                                    placeholder="Adicione observações sobre esta mensagem..."
+                                  />
+                                </div>
+                                <Button
+                                  onClick={() =>
+                                    updateMessageStatus(
+                                      editingMessage.id,
+                                      editingMessage.status,
+                                      editingMessage.admin_notes,
+                                    )
+                                  }
+                                  disabled={loading}
+                                  className="w-full bg-turquoise hover:bg-turquoise/90"
+                                >
+                                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                  Atualizar Status
+                                </Button>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                    <p className="text-gray-700 text-pretty">{message.message}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
         </Tabs>
       </main>
 

@@ -2,7 +2,6 @@
 
 import type React from "react"
 
-import { useState } from "react"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -37,17 +36,6 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
   const [errorMessage, setErrorMessage] = useState("")
   const [timeSlots, setTimeSlots] = useState<string[]>([])
 
-  // Generate available time slots (9 AM to 6 PM, excluding lunch 12-1 PM)
-  const generateTimeSlots = () => {
-    const slots = []
-    for (let hour = 9; hour < 18; hour++) {
-      if (hour !== 12) {
-        // Skip lunch hour
-        slots.push(`${hour.toString().padStart(2, "0")}:00`)
-        if (hour < 17) {
-          // Don't add 30min slot for last hour
-          slots.push(`${hour.toString().padStart(2, "0")}:30`)
-        }
   // Fetch available time slots when a date is selected
   useEffect(() => {
     if (!selectedDate) {
@@ -73,10 +61,7 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
         setIsLoadingTimes(false)
       }
     }
-    return slots
-  }
 
-  const timeSlots = generateTimeSlots()
     fetchAvailableTimes()
   }, [selectedDate])
 
@@ -253,23 +238,6 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
             <CardTitle className="text-xl text-navy">3. Escolha o Horário</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-              {timeSlots.map((time) => (
-                <Button
-                  key={time}
-                  type="button"
-                  variant={selectedTime === time ? "default" : "outline"}
-                  className={`h-12 ${
-                    selectedTime === time
-                      ? "bg-turquoise hover:bg-turquoise/90 text-white"
-                      : "bg-transparent hover:bg-turquoise/10"
-                  }`}
-                  onClick={() => setSelectedTime(time)}
-                >
-                  {time}
-                </Button>
-              ))}
-            </div>
             {isLoadingTimes && <p className="text-center">Buscando horários...</p>}
             {!isLoadingTimes && timeSlots.length === 0 && (
               <p className="text-center text-gray-500">Nenhum horário disponível para esta data. Por favor, selecione outro dia.</p>
