@@ -630,99 +630,92 @@ export function AdminDashboard({
                   <CardTitle className="text-navy">Serviços Oferecidos</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {services.map((service) => (
-                    <div key={service.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-navy">{service.title}</p>
-                        <p className="text-sm text-gray-600">
-                          {service.duration_minutes} min - R$ {service.price}
-                        </p>
+                  {services.map((service) =>
+                    editingService?.id === service.id ? (
+                      // Formulário de Edição Inline
+                      <div key={service.id} className="p-4 bg-gray-50 rounded-lg border border-turquoise space-y-4">
+                        <div>
+                          <Label>Nome do Serviço</Label>
+                          <Input
+                            value={editingService.title}
+                            onChange={(e) => setEditingService({ ...editingService, title: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Descrição</Label>
+                          <Textarea
+                            value={editingService.description || ""}
+                            onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>Preço (R$)</Label>
+                            <Input
+                              type="number"
+                              value={editingService.price}
+                              onChange={(e) =>
+                                setEditingService({ ...editingService, price: Number.parseFloat(e.target.value) || 0 })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label>Duração (min)</Label>
+                            <Input
+                              type="number"
+                              value={editingService.duration_minutes}
+                              onChange={(e) =>
+                                setEditingService({
+                                  ...editingService,
+                                  duration_minutes: Number.parseInt(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`is_active_${service.id}`}
+                            checked={editingService.is_active}
+                            onChange={(e) => setEditingService({ ...editingService, is_active: e.target.checked })}
+                          />
+                          <Label htmlFor={`is_active_${service.id}`}>Serviço ativo</Label>
+                        </div>
+                        <div className="flex space-x-2 justify-end">
+                          <Button variant="outline" onClick={() => setEditingService(null)}>
+                            Cancelar
+                          </Button>
+                          <Button
+                            onClick={() => updateService(editingService.id, editingService)}
+                            disabled={loading}
+                            className="bg-turquoise hover:bg-turquoise/90"
+                          >
+                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Salvar
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={service.is_active ? "default" : "secondary"}>
-                          {service.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" onClick={() => setEditingService(service)}>
-                              Editar
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Editar Serviço</DialogTitle>
-                            </DialogHeader>
-                            {editingService && (
-                              <div className="space-y-4">
-                                <div>
-                                  <Label>Nome do Serviço</Label>
-                                  <Input
-                                    value={editingService.title}
-                                    onChange={(e) => setEditingService({ ...editingService, title: e.target.value })}
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Descrição</Label>
-                                  <Textarea
-                                    value={editingService.description || ""}
-                                    onChange={(e) =>
-                                      setEditingService({ ...editingService, description: e.target.value })
-                                    }
-                                  />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label>Preço (R$)</Label>
-                                    <Input
-                                      type="number"
-                                      value={editingService.price}
-                                      onChange={(e) =>
-                                        setEditingService({
-                                          ...editingService,
-                                          price: Number.parseFloat(e.target.value),
-                                        })
-                                      }
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label>Duração (min)</Label>
-                                    <Input
-                                      type="number"
-                                      value={editingService.duration_minutes}
-                                      onChange={(e) =>
-                                        setEditingService({
-                                          ...editingService,
-                                          duration_minutes: Number.parseInt(e.target.value),
-                                        })
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={editingService.is_active}
-                                    onChange={(e) =>
-                                      setEditingService({ ...editingService, is_active: e.target.checked })
-                                    }
-                                  />
-                                  <Label>Serviço ativo</Label>
-                                </div>
-                                <Button
-                                  onClick={() => updateService(editingService.id, editingService)}
-                                  disabled={loading}
-                                  className="w-full bg-turquoise hover:bg-turquoise/90"
-                                >
-                                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                  Salvar Alterações
-                                </Button>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
+                    ) : (
+                      // Visualização Padrão
+                      <div key={service.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-navy">{service.title}</p>
+                          <p className="text-sm text-gray-600">
+                            {service.duration_minutes} min - R$ {service.price}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={service.is_active ? "default" : "secondary"}>
+                            {service.is_active ? "Ativo" : "Inativo"}
+                          </Badge>
+                          <Button size="sm" variant="outline" onClick={() => setEditingService(service)}>
+                            Editar
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button className="w-full bg-turquoise hover:bg-turquoise/90 text-white">
