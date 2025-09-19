@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2 } from "lucide-react"
+import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search } from "lucide-react"
 import Link from "next/link"
-import { format, isToday, isAfter } from "date-fns"
+import { useRouter } from "next/navigation" 
+import { format, isToday, isAfter, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import type { User } from "@supabase/supabase-js"
 
@@ -27,7 +28,7 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({
   appointments: initialAppointments,
-  patients,
+  patients: initialPatients,
   messages: initialMessages,
   services: initialServices,
   user,
@@ -35,6 +36,7 @@ export function AdminDashboard({
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview")
   const [appointments, setAppointments] = useState(initialAppointments)
+  const [patients, setPatients] = useState(initialPatients)
   const [messages, setMessages] = useState(initialMessages)
   const [services, setServices] = useState(initialServices)
   const [loading, setLoading] = useState(false)
@@ -44,6 +46,14 @@ export function AdminDashboard({
   const [editingService, setEditingService] = useState<any>(null)
   const [isEditServiceDialogOpen, setIsEditServiceDialogOpen] = useState(false)
   const [editingMessage, setEditingMessage] = useState<any>(null)
+  const [editingPatient, setEditingPatient] = useState<any>(null)
+  const [isEditPatientDialogOpen, setIsEditPatientDialogOpen] = useState(false)
+  const [viewingPatientHistory, setViewingPatientHistory] = useState<any>(null)
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
+  const [patientToDelete, setPatientToDelete] = useState<any>(null)
+  const [isDeletePatientDialogOpen, setIsDeletePatientDialogOpen] = useState(false)
+  const [patientSearchQuery, setPatientSearchQuery] = useState("")
+
   const [newService, setNewService] = useState({
     title: "",
     description: "",
@@ -51,6 +61,7 @@ export function AdminDashboard({
     duration_minutes: "",
     is_active: true,
   })
+
 
   const updateAppointmentStatus = async (appointmentId: string, status: string, notes?: string) => {
     setLoading(true)
@@ -151,11 +162,76 @@ export function AdminDashboard({
     }
   }
 
+  const updatePatient = async (patientId: string, updates: any) => {
+    setLoading(true)
+    try {
+      const response = await fetch("/api/admin/patients", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: patientId, ...updates }),
+      })
+
+      if (response.ok) {
+        const { patient } = await response.json()
+        setPatients((prev) => prev.map((p) => (p.id === patientId ? { ...p, ...patient } : p)))
+        setEditingPatient(null)
+        setIsEditPatientDialogOpen(false)
+      } else {
+        const errorData = await response.json()
+        console.error("Failed to update patient:", errorData.message)
+      }
+    } catch (error) {
+      console.error("Error updating patient:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deletePatient = async (patientId: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch("/api/admin/delete-patient", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId }),
+      })
+
+      if (response.ok) {
+        setPatients((prev) => prev.filter((p) => p.id !== patientId))
+        setIsDeletePatientDialogOpen(false)
+        setPatientToDelete(null)
+      } else {
+        const errorData = await response.json()
+        console.error("Failed to delete patient:", errorData.message)
+        // TODO: Show an error toast
+      }
+    } catch (error) {
+      console.error("Error deleting patient:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
   // Calculate metrics
   const todayAppointments = appointments.filter((apt) => isToday(new Date(apt.appointment_date)))
   const upcomingAppointments = appointments.filter((apt) => isAfter(new Date(apt.appointment_date), new Date()))
   const unreadMessages = messages.filter((msg) => msg.status === "unread")
   const totalPatients = patients.length
+
+  const filteredPatients = patients.filter(
+    (patient) =>
+      patient.full_name &&
+      patient.full_name.toLowerCase().includes(patientSearchQuery.toLowerCase()),
+  )
+
+  const getPatientAppointments = (patientId: string) => {
+    return appointments
+      .filter((apt) => apt.profiles.id === patientId)
+      .sort((a, b) => {
+        return new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime()
+      })
+  }
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -486,11 +562,24 @@ export function AdminDashboard({
           <TabsContent value="patients" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-navy">Gerenciar Pacientes</h2>
-              <Button className="bg-turquoise hover:bg-turquoise/90 text-white">Adicionar Paciente</Button>
+              <p className="text-sm text-gray-600">
+                {patientSearchQuery ? `Exibindo ${filteredPatients.length} de ` : "Total: "}
+                {patients.length} pacientes
+              </p>
+            </div>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                placeholder="Buscar paciente por nome..."
+                value={patientSearchQuery}
+                onChange={(e) => setPatientSearchQuery(e.target.value)}
+                className="w-full md:w-1/2 lg:w-1/3 pl-10"
+              />
             </div>
 
             <div className="grid gap-6">
-              {patients.map((patient) => (
+              {filteredPatients.map((patient) => (
                 <Card key={patient.id}>
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start">
@@ -515,110 +604,121 @@ export function AdminDashboard({
                           </div>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Ver Histórico
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4 mr-1" />
-                          Editar
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Messages Tab */}
-          <TabsContent value="messages" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-navy">Mensagens de Contato</h2>
-              <div className="text-sm text-gray-600">{unreadMessages.length} não lidas</div>
-            </div>
-
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <Card key={message.id} className={message.status === "unread" ? "border-turquoise" : ""}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-navy">{message.subject}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <span>{message.name}</span>
-                          <span>{message.email}</span>
-                          {message.phone && <span>{message.phone}</span>}
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {getMessageStatusBadge(message.status)}
-                        <Dialog>
+                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
                           <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" onClick={() => setEditingMessage(message)}>
-                              Responder
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setViewingPatientHistory(patient)
+                                setIsHistoryDialogOpen(true)
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Histórico
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Histórico de Consultas: {viewingPatientHistory?.full_name}</DialogTitle>
+                            </DialogHeader>
+                            <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-2">
+                              {viewingPatientHistory && getPatientAppointments(viewingPatientHistory.id).length > 0 ? (
+                                getPatientAppointments(viewingPatientHistory.id).map((apt) => (
+                                  <div key={apt.id} className="p-3 bg-gray-50 rounded-md flex justify-between items-center">
+                                    <div>
+                                      <p className="font-medium">{apt.services.title}</p>
+                                      <p className="text-sm text-gray-600">{format(parseISO(apt.appointment_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                                    </div>
+                                    {getStatusBadge(apt.status)}
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-center text-gray-500 py-4">Nenhuma consulta encontrada.</p>
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={isDeletePatientDialogOpen} onOpenChange={setIsDeletePatientDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                setPatientToDelete(patient)
+                                setIsDeletePatientDialogOpen(true)
+                              }}
+                            >
+                              Excluir
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Responder Mensagem</DialogTitle>
+                              <DialogTitle>Confirmar Exclusão</DialogTitle>
                             </DialogHeader>
-                            {editingMessage && (
+                            {patientToDelete && (
+                              <div className="space-y-4">
+                                <p>
+                                  Você tem certeza que deseja excluir o paciente{" "}
+                                  <span className="font-bold">{patientToDelete.full_name}</span>?
+                                </p>
+                                <p className="text-sm font-medium text-red-600">
+                                  Esta ação é irreversível e removerá o usuário e todos os seus dados associados.
+                                </p>
+                                <Button onClick={() => deletePatient(patientToDelete.id)} disabled={loading} variant="destructive" className="w-full">
+                                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                  Sim, excluir paciente
+                                </Button>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={isEditPatientDialogOpen} onOpenChange={setIsEditPatientDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingPatient(patient)
+                                setIsEditPatientDialogOpen(true)
+                              }}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Editar
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Editar Paciente</DialogTitle>
+                            </DialogHeader>
+                            {editingPatient && (
                               <div className="space-y-4">
                                 <div>
-                                  <Label>Status</Label>
-                                  <Select
-                                    value={editingMessage.status}
-                                    onValueChange={(value) => setEditingMessage({ ...editingMessage, status: value })}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="unread">Não lida</SelectItem>
-                                      <SelectItem value="read">Lida</SelectItem>
-                                      <SelectItem value="replied">Respondida</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                  <Label>Nome Completo</Label>
+                                  <Input value={editingPatient.full_name} onChange={(e) => setEditingPatient({ ...editingPatient, full_name: e.target.value })} />
                                 </div>
                                 <div>
-                                  <Label>Observações Administrativas</Label>
-                                  <Textarea
-                                    value={editingMessage.admin_notes || ""}
-                                    onChange={(e) =>
-                                      setEditingMessage({ ...editingMessage, admin_notes: e.target.value })
-                                    }
-                                    placeholder="Adicione observações sobre esta mensagem..."
-                                  />
+                                  <Label>Telefone</Label>
+                                  <Input value={editingPatient.phone || ""} onChange={(e) => setEditingPatient({ ...editingPatient, phone: e.target.value })} />
                                 </div>
-                                <Button
-                                  onClick={() =>
-                                    updateMessageStatus(
-                                      editingMessage.id,
-                                      editingMessage.status,
-                                      editingMessage.admin_notes,
-                                    )
-                                  }
-                                  disabled={loading}
-                                  className="w-full bg-turquoise hover:bg-turquoise/90"
-                                >
-                                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                  Atualizar Status
-                                </Button>
+                                <Button onClick={() => updatePatient(editingPatient.id, editingPatient)} disabled={loading} className="w-full bg-turquoise hover:bg-turquoise/90">Salvar Alterações</Button>
                               </div>
                             )}
                           </DialogContent>
                         </Dialog>
                       </div>
                     </div>
-                    <p className="text-gray-700 text-pretty">{message.message}</p>
                   </CardContent>
                 </Card>
               ))}
+              {filteredPatients.length === 0 && patientSearchQuery && (
+                <div className="text-center py-10 col-span-full">
+                  <p className="text-gray-600">Nenhum paciente encontrado com o nome "{patientSearchQuery}".</p>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -829,6 +929,96 @@ export function AdminDashboard({
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* === DIALOGS === */}
+      {/* Edit Patient Dialog */}
+      <Dialog open={isEditPatientDialogOpen} onOpenChange={setIsEditPatientDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Paciente</DialogTitle>
+          </DialogHeader>
+          {editingPatient && (
+            <div className="space-y-4">
+              <div>
+                <Label>Nome Completo</Label>
+                <Input
+                  value={editingPatient.full_name}
+                  onChange={(e) => setEditingPatient({ ...editingPatient, full_name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Telefone</Label>
+                <Input
+                  value={editingPatient.phone || ""}
+                  onChange={(e) => setEditingPatient({ ...editingPatient, phone: e.target.value })}
+                />
+              </div>
+              <Button
+                onClick={() => updatePatient(editingPatient.id, editingPatient)}
+                disabled={loading}
+                className="w-full bg-turquoise hover:bg-turquoise/90"
+              >
+                Salvar Alterações
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Patient Dialog */}
+      <Dialog open={isDeletePatientDialogOpen} onOpenChange={setIsDeletePatientDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+          </DialogHeader>
+          {patientToDelete && (
+            <div className="space-y-4">
+              <p>
+                Você tem certeza que deseja excluir o paciente{" "}
+                <span className="font-bold">{patientToDelete.full_name}</span>?
+              </p>
+              <p className="text-sm font-medium text-red-600">
+                Esta ação é irreversível e removerá o usuário e todos os seus dados associados.
+              </p>
+              <Button
+                onClick={() => deletePatient(patientToDelete.id)}
+                disabled={loading}
+                variant="destructive"
+                className="w-full"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sim, excluir paciente
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Patient History Dialog */}
+      <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Histórico de Consultas: {viewingPatientHistory?.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-2">
+            {viewingPatientHistory && getPatientAppointments(viewingPatientHistory.id).length > 0 ? (
+              getPatientAppointments(viewingPatientHistory.id).map((apt) => (
+                <div key={apt.id} className="p-3 bg-gray-50 rounded-md flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">{apt.services.title}</p>
+                    <p className="text-sm text-gray-600">
+                      {format(parseISO(apt.appointment_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </div>
+                  {getStatusBadge(apt.status)}
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-4">Nenhuma consulta encontrada.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
