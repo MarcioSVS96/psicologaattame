@@ -65,14 +65,10 @@ export function HeroSection() {
               style={{ backgroundColor: "rgba(64, 224, 208, 0.2)", borderColor: "rgba(64, 224, 208, 0.3)" }}
             >
               <img
-                src="/professional-psychologist-woman-in-office-setting.jpg"
+                src="/profile.png"
                 alt="Beatriz Attame - Psicóloga"
                 className="rounded-2xl object-cover w-full h-full"
               />
-            </div>
-            {/* Floating elements */}
-            <div className="absolute -top-4 -right-4 rounded-full p-4" style={{ backgroundColor: "#40e0d0" }}>
-              <Heart className="h-8 w-8 text-white" />
             </div>
           </div>
         </div>

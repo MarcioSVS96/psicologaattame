@@ -35,6 +35,23 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
   const [errorMessage, setErrorMessage] = useState("")
   const [timeSlots, setTimeSlots] = useState<string[]>([])
+  const [availableDates, setAvailableDates] = useState<string[]>([])
+
+  // Fetch all dates that have at least one available slot
+  useEffect(() => {
+    const fetchAvailableDates = async () => {
+      try {
+        const response = await fetch(`/api/availability/dates`)
+        if (response.ok) {
+          const { dates } = await response.json()
+          setAvailableDates(dates)
+        }
+      } catch (error) {
+        console.error("Failed to fetch available dates:", error)
+      }
+    }
+    fetchAvailableDates()
+  }, [])
 
   // Fetch available time slots when a date is selected
   useEffect(() => {
@@ -48,7 +65,6 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
       setSelectedTime("") // Reset selected time
       try {
         const dateString = format(selectedDate, "yyyy-MM-dd")
-        // This API route needs to be created to publically expose available slots
         const response = await fetch(`/api/availability?date=${dateString}`)
         if (!response.ok) throw new Error("Não foi possível buscar os horários.")
 
@@ -67,17 +83,9 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
 
   // Check if date is available (not weekends, not past dates)
   const isDateAvailable = (date: Date) => {
-    const today = startOfDay(new Date())
-    const dayOfWeek = date.getDay()
-    const maxDate = addDays(today, 30) // 30 days in advance
-
-    return (
-      isAfter(date, today) ||
-      (isSameDay(date, today) && // Not in the past
-        dayOfWeek !== 0 && // Not Sunday
-        dayOfWeek !== 6 && // Not Saturday
-        isBefore(date, maxDate)) // Within 30 days
-    )
+    // A data está disponível se estiver na lista de datas com horários.
+    const dateString = format(date, "yyyy-MM-dd")
+    return availableDates.includes(dateString)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -244,19 +252,37 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
             )}
             {timeSlots.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                {timeSlots.map((time) => (
-                  <Button
-                    key={time}
-                    type="button"
-                    variant={selectedTime === time ? "default" : "outline"}
-                    className={`h-12 ${
-                      selectedTime === time ? "bg-turquoise hover:bg-turquoise/90 text-white" : "bg-transparent hover:bg-turquoise/10"
-                    }`}
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </Button>
-                ))}
+                {timeSlots.map((time) => {
+                  const now = new Date()
+                  const isTodaySelected = selectedDate ? isSameDay(selectedDate, now) : false
+                  let isSlotInThePast = false
+
+                  if (isTodaySelected && selectedDate) {
+                    const [hour, minute] = time.split(":").map(Number)
+                    const slotDateTime = new Date(selectedDate)
+                    slotDateTime.setHours(hour, minute, 0, 0)
+                    isSlotInThePast = isAfter(now, slotDateTime)
+                  }
+
+                  return (
+                    <Button
+                      key={time}
+                      type="button"
+                      variant={selectedTime === time ? "default" : "outline"}
+                      className={`h-12 ${
+                        selectedTime === time
+                          ? "bg-turquoise hover:bg-turquoise/90 text-white"
+                          : isSlotInThePast
+                          ? "text-red-500 border-red-200 bg-red-50/50 cursor-not-allowed"
+                          : "bg-transparent hover:bg-turquoise/10"
+                      }`}
+                      onClick={() => setSelectedTime(time)}
+                      disabled={isSlotInThePast}
+                    >
+                      {time}
+                    </Button>
+                  )
+                })}
               </div>
             )}
             <p className="text-sm text-gray-500 mt-4">

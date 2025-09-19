@@ -574,16 +574,30 @@ export function AdminDashboard({
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                      {allDaySlots.map((slot) => (
-                        <Button
-                          key={slot}
-                          variant={availableSlots.includes(slot) ? "default" : "outline"}
-                          className={`h-12 ${availableSlots.includes(slot) ? "bg-turquoise hover:bg-turquoise/90" : ""}`}
-                          onClick={() => handleToggleSlot(slot)}
-                        >
-                          {slot}
-                        </Button>
-                      ))}
+                      {allDaySlots.map((slot) => {
+                        const now = new Date()
+                        const isTodaySelected = selectedDayForAvailability ? isToday(selectedDayForAvailability) : false
+                        let isSlotInThePast = false
+
+                        if (isTodaySelected && selectedDayForAvailability) {
+                          const [hour, minute] = slot.split(":").map(Number)
+                          const slotDateTime = new Date(selectedDayForAvailability)
+                          slotDateTime.setHours(hour, minute)
+                          isSlotInThePast = isAfter(now, slotDateTime)
+                        }
+
+                        return (
+                          <Button
+                            key={slot}
+                            variant={availableSlots.includes(slot) ? "default" : "outline"}
+                            className={`h-12 ${availableSlots.includes(slot) ? "bg-turquoise hover:bg-turquoise/90" : ""}`}
+                            onClick={() => handleToggleSlot(slot)}
+                            disabled={isSlotInThePast}
+                          >
+                            {slot}
+                          </Button>
+                        )
+                      })}
                     </div>
                   )}
                 </div>

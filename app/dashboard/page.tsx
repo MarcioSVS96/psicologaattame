@@ -118,9 +118,6 @@ export default async function DashboardPage() {
                 <CardTitle className="text-navy">Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button asChild className="w-full bg-turquoise hover:bg-turquoise/90 text-white">
-                  <Link href="/book-appointment">Agendar Nova Consulta</Link>
-                </Button>
                 <Button asChild variant="outline" className="w-full bg-transparent">
                   <Link href="/my-appointments">Ver Minhas Consultas</Link>
                 </Button>
