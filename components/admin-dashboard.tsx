@@ -652,7 +652,9 @@ export function AdminDashboard({
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start">
                       <div className="space-y-2">
-                        <h3 className="text-lg font-semibold text-navy">{patient.full_name || "Nome não informado"}</h3>
+                        <Link href={`/admin/patients/${patient.id}`} className="hover:underline">
+                          <h3 className="text-lg font-semibold text-navy">{patient.full_name || "Nome não informado"}</h3>
+                        </Link>
                         <div className="space-y-1 text-sm text-gray-600">
                           {patient.phone && (
                             <div className="flex items-center space-x-2">
@@ -673,16 +675,11 @@ export function AdminDashboard({
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setViewingPatientHistory(patient)
-                            setIsHistoryDialogOpen(true)
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          Histórico
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/admin/patients/${patient.id}`}>
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver Detalhes
+                          </Link>
                         </Button>
 
                         <Button
