@@ -121,8 +121,8 @@ export default async function DashboardPage() {
                 <Button asChild variant="outline" className="w-full bg-transparent">
                   <Link href="/my-appointments">Ver Minhas Consultas</Link>
                 </Button>
-                <Button variant="outline" className="w-full bg-transparent">
-                  Atualizar Perfil
+                <Button asChild variant="outline" className="w-full bg-transparent">
+                  <Link href="/dashboard/profile">Atualizar Perfil</Link>
                 </Button>
               </CardContent>
             </Card>
