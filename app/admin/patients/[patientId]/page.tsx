@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,9 +18,21 @@ export default async function PatientDetailsPage({ params }: { params: { patient
   const supabase = await createClient()
   const { patientId } = params
 
-  const { data: patient, error } = await supabase.from("profiles").select("*").eq("id", patientId).single()
+  // Usar o client de admin para buscar dados de autenticação do paciente
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
 
-  if (error || !patient) {
+  const { data: profileData, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", patientId)
+    .single()
+
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.getUserById(patientId)
+
+  if (profileError || authError || !profileData || !authData.user) {
     return (
       <div className="p-8">
         <h1 className="text-2xl font-bold text-red-600">Paciente não encontrado.</h1>
@@ -30,8 +43,24 @@ export default async function PatientDetailsPage({ params }: { params: { patient
     )
   }
 
-  const InfoField = ({ label, value, icon }: { label: string; value: string | null | undefined; icon?: React.ReactNode }) => (
-    <div className="flex items-start space-x-3">
+  const patient = {
+    ...profileData,
+    ...authData.user.user_metadata, // Combina os metadados do usuário
+    email: authData.user.email, // Garante que o e-mail principal seja usado
+  }
+
+  const InfoField = ({
+    label,
+    value,
+    icon,
+    className,
+  }: {
+    label: string
+    value: string | null | undefined
+    icon?: React.ReactNode
+    className?: string
+  }) => (
+    <div className={`flex items-start space-x-3 ${className || ""}`}>
       {icon && <div className="mt-1 text-turquoise">{icon}</div>}
       <div>
         <p className="text-sm text-gray-500">{label}</p>
