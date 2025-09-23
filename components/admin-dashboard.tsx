@@ -506,53 +506,6 @@ export function AdminDashboard({
                 )}
               </CardContent>
             </Card>
-            {/* Dialog for editing appointment - moved outside the loop for better performance and state management */}
-            <Dialog open={!!editingAppointment} onOpenChange={(isOpen) => !isOpen && setEditingAppointment(null)}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Detalhes da Consulta</DialogTitle>
-                </DialogHeader>
-                {editingAppointment && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Status</Label>
-                      <Select
-                        value={editingAppointment.status}
-                        onValueChange={(value) => setEditingAppointment({ ...editingAppointment, status: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="scheduled">Agendada</SelectItem>
-                          <SelectItem value="confirmed">Confirmada</SelectItem>
-                          <SelectItem value="completed">Concluída</SelectItem>
-                          <SelectItem value="cancelled">Cancelada</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Observações</Label>
-                      <Textarea
-                        value={editingAppointment.notes || ""}
-                        onChange={(e) => setEditingAppointment({ ...editingAppointment, notes: e.target.value })}
-                        placeholder="Adicione observações sobre a consulta..."
-                      />
-                    </div>
-                    <Button
-                      onClick={() =>
-                        updateAppointmentStatus(editingAppointment.id, editingAppointment.status, editingAppointment.notes)
-                      }
-                      disabled={loading}
-                      className="w-full bg-turquoise hover:bg-turquoise/90"
-                    >
-                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Salvar Alterações
-                    </Button>
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
           </TabsContent>
 
           {/* Appointments Tab */}
@@ -618,30 +571,51 @@ export function AdminDashboard({
                 </div>
               </CardContent>
             </Card>
-            <div className="mt-8">
-              <h3 className="text-xl font-bold text-navy mb-4">Próximas Consultas Agendadas</h3>
-              <div className="space-y-4">
-                {upcomingAppointments.map(appointment => (
-                  <div
-                    key={appointment.id}
-                    className={`flex items-center justify-between p-4 rounded-lg ${getStatusCardClass(appointment.status)}`}
-                  >
-                    <div className="space-y-1">
-                      <p className="font-medium text-navy">
-                        {format(new Date(appointment.appointment_date), "dd/MM/yyyy 'às' HH:mm")} - {appointment.services.title}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Paciente: {appointment.profiles?.full_name || "Nome não informado"}
-                      </p>
-                    </div>
-                    {getStatusBadge(appointment.status)}
-                  </div>
-                ))}
-                {upcomingAppointments.length === 0 && (
-                  <p className="text-gray-500 text-center py-8">Nenhuma consulta futura agendada.</p>
-                )}
-              </div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-navy">Próximas Consultas Agendadas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div
+                  className={`pr-2 grid grid-cols-1 md:grid-cols-2 gap-4 ${
+                    upcomingAppointments.length > 4 ? "max-h-[32rem] overflow-y-auto" : ""
+                  }`}
+                >
+                  {upcomingAppointments.length > 0 ? (
+                    upcomingAppointments.map(appointment => (
+                      <div
+                        key={appointment.id}
+                        className={`p-4 rounded-lg flex flex-col justify-between ${getStatusCardClass(
+                          appointment.status,
+                        )}`}
+                      >
+                        <div className="space-y-1 mb-4">
+                          <p className="font-medium text-navy">
+                            {format(new Date(appointment.appointment_date), "dd/MM/yyyy 'às' HH:mm")} -{" "}
+                            {appointment.services.title}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Paciente: {appointment.profiles?.full_name || "Nome não informado"}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          {getStatusBadge(appointment.status)}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline" onClick={() => setEditingAppointment(appointment)}>
+                                Ver Detalhes
+                              </Button>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-8 md:col-span-2">Nenhuma consulta futura agendada.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Patients Tab */}
@@ -1132,6 +1106,53 @@ export function AdminDashboard({
       </main>
 
       {/* === DIALOGS === */}
+      {/* Edit Appointment Dialog */}
+      <Dialog open={!!editingAppointment} onOpenChange={(isOpen) => !isOpen && setEditingAppointment(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Detalhes da Consulta</DialogTitle>
+          </DialogHeader>
+          {editingAppointment && (
+            <div className="space-y-4">
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={editingAppointment.status}
+                  onValueChange={(value) => setEditingAppointment({ ...editingAppointment, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="scheduled">Agendada</SelectItem>
+                    <SelectItem value="confirmed">Confirmada</SelectItem>
+                    <SelectItem value="completed">Concluída</SelectItem>
+                    <SelectItem value="cancelled">Cancelada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Observações</Label>
+                <Textarea
+                  value={editingAppointment.notes || ""}
+                  onChange={(e) => setEditingAppointment({ ...editingAppointment, notes: e.target.value })}
+                  placeholder="Adicione observações sobre a consulta..."
+                />
+              </div>
+              <Button
+                onClick={() =>
+                  updateAppointmentStatus(editingAppointment.id, editingAppointment.status, editingAppointment.notes)
+                }
+                disabled={loading}
+                className="w-full bg-turquoise hover:bg-turquoise/90"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar Alterações
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       {/* Edit Patient Dialog */}
       <Dialog open={isEditPatientDialogOpen} onOpenChange={setIsEditPatientDialogOpen}>
         <DialogContent>
