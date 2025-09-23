@@ -48,6 +48,7 @@ export default function CompleteProfilePage() {
 
   // Estado para os campos adicionais
   const [dateOfBirth, setDateOfBirth] = useState("")
+  const [gender, setGender] = useState("")
   const [emergencyContactName, setEmergencyContactName] = useState("")
   const [emergencyContactPhone, setEmergencyContactPhone] = useState("")
   const [mainComplaint, setMainComplaint] = useState("")
@@ -85,6 +86,7 @@ export default function CompleteProfilePage() {
         if (profile) {
           // Preenche o formulário com dados existentes, se houver
           setDateOfBirth(profile.date_of_birth || "")
+          setGender(profile.gender || "")
           setEmergencyContactName(profile.emergency_contact_name || "")
           setEmergencyContactPhone(profile.emergency_contact_phone || "")
           setMainComplaint(profile.main_complaint || "")
@@ -126,6 +128,7 @@ export default function CompleteProfilePage() {
     try {
       const profileData = {
         date_of_birth: dateOfBirth,
+        gender: gender,
         emergency_contact_name: emergencyContactName,
         emergency_contact_phone: emergencyContactPhone,
         main_complaint: noMainComplaint ? "Não tenho queixa principal" : mainComplaint,
@@ -186,6 +189,22 @@ export default function CompleteProfilePage() {
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Data de Nascimento</Label>
                   <Input id="dateOfBirth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gênero</Label>
+                  <Select value={gender} onValueChange={setGender}>
+                    <SelectTrigger id="gender">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Feminino">Feminino</SelectItem>
+                      <SelectItem value="Masculino">Masculino</SelectItem>
+                      <SelectItem value="Não-binário">Não-binário</SelectItem>
+                      <SelectItem value="Outro">Outro</SelectItem>
+                      <SelectItem value="Prefiro não informar">Prefiro não informar</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -325,4 +344,3 @@ export default function CompleteProfilePage() {
     </div>
   )
 }
-
