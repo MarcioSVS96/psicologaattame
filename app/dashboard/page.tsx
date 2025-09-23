@@ -26,7 +26,14 @@ export default async function DashboardPage() {
   }
 
   // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+
+  // Combina os dados do perfil com os metadados do usuário para ter o perfil completo
+  const profile = {
+    ...profileData,
+    ...user.user_metadata,
+    email: user.email, // Garante que o e-mail principal seja usado
+  }
 
   // Get user appointments
   const { data: appointments } = await supabase
@@ -131,22 +138,30 @@ export default async function DashboardPage() {
               <CardHeader>
                 <CardTitle className="text-navy">Informações da Conta</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">Nome:</p>
                   <p className="font-medium">{profile?.full_name || "Não informado"}</p>
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">Email:</p>
-                  <p className="font-medium">{user.email}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">Tipo de conta:</p>
-                  <p className="font-medium capitalize">Paciente</p>
+                  <p className="font-medium">{profile.email}</p>
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">Telefone:</p>
                   <p className="font-medium">{profile?.phone || "Não informado"}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Data de Nascimento:</p>
+                  <p className="font-medium">
+                    {profile?.date_of_birth
+                      ? format(new Date(profile.date_of_birth), "dd/MM/yyyy", { locale: ptBR })
+                      : "Não informado"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Orientação Sexual:</p>
+                  <p className="font-medium">{profile?.sexual_orientation || "Não informado"}</p>
                 </div>
               </CardContent>
             </Card>

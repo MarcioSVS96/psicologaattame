@@ -98,7 +98,9 @@ export default async function PatientDetailsPage({ params }: { params: { patient
                 value={patient.date_of_birth ? format(new Date(patient.date_of_birth), "dd/MM/yyyy", { locale: ptBR }) : null}
                 icon={<Calendar className="h-4 w-4" />}
               />
+              <InfoField label="Gênero" value={patient.gender} icon={<User className="h-4 w-4" />} />
               <InfoField label="E-mail" value={patient.email} icon={<Mail className="h-4 w-4" />} />
+              <InfoField label="Orientação Sexual" value={patient.sexual_orientation} icon={<HeartPulse className="h-4 w-4" />} />
               <InfoField label="Telefone" value={patient.phone} icon={<Phone className="h-4 w-4" />} />
             </CardContent>
           </Card>
