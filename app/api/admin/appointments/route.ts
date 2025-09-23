@@ -1,8 +1,10 @@
-import { createServerClient } from "@/lib/supabase/server"
+import { cookies } from "next/headers"
+import { createServerClient } from "@supabase/ssr"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
-  const supabase = createServerClient()
+  const cookieStore = cookies()
+  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { cookies: { get: (name) => cookieStore.get(name)?.value } })
 
   // Check if user is admin
   const {
@@ -44,7 +46,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const supabase = createServerClient()
+  const cookieStore = cookies()
+  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { cookies: { get: (name) => cookieStore.get(name)?.value } })
 
   // Check if user is admin
   const {
