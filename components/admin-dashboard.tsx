@@ -361,6 +361,17 @@ export function AdminDashboard({
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
+  const getStatusCardClass = (status: string) => {
+    const statusConfig = {
+      scheduled: "bg-blue-50 border-l-4 border-blue-400",
+      confirmed: "bg-green-50 border-l-4 border-green-500",
+      completed: "bg-slate-50 border-l-4 border-slate-400",
+      cancelled: "bg-red-50 border-l-4 border-red-500",
+    }
+    const key = status as keyof typeof statusConfig
+    return statusConfig[key] || "bg-gray-50"
+  }
+
   return (
     <div className="min-h-screen bg-warm-gray">
       <header className="bg-white border-b border-gray-200">
@@ -456,13 +467,22 @@ export function AdminDashboard({
                 <CardTitle className="text-navy">Consultas de Hoje</CardTitle>
               </CardHeader>
               <CardContent>
-                {todayAppointments.length === 0 ? (
+                {todayAppointments.length === 0 ? ( 
                   <p className="text-gray-500 text-center py-8">Nenhuma consulta agendada para hoje</p>
                 ) : (
-                  <div className="space-y-4">
-                    {todayAppointments.map((appointment) => (
-                      <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="space-y-1">
+                  <div
+                    className={`pr-2 grid grid-cols-1 md:grid-cols-2 gap-4 ${
+                      todayAppointments.length > 6 ? "max-h-[32rem] overflow-y-auto" : ""
+                    }`}
+                  >
+                    {todayAppointments.map(appointment => (
+                      <div
+                        key={appointment.id}
+                        className={`p-4 rounded-lg flex flex-col justify-between ${getStatusCardClass(
+                          appointment.status,
+                        )}`}
+                      >
+                        <div className="space-y-1 mb-4">
                           <p className="font-medium text-navy">
                             {format(new Date(appointment.appointment_date), "HH:mm")} - {appointment.services.title}
                           </p>
@@ -470,66 +490,14 @@ export function AdminDashboard({
                             Paciente: {appointment.profiles?.full_name || "Nome não informado"}
                           </p>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center justify-between">
                           {getStatusBadge(appointment.status)}
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button size="sm" variant="outline" onClick={() => setEditingAppointment(appointment)}>
                                 Ver Detalhes
                               </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Detalhes da Consulta</DialogTitle>
-                              </DialogHeader>
-                              {editingAppointment && (
-                                <div className="space-y-4">
-                                  <div>
-                                    <Label>Status</Label>
-                                    <Select
-                                      value={editingAppointment.status}
-                                      onValueChange={(value) =>
-                                        setEditingAppointment({ ...editingAppointment, status: value })
-                                      }
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="scheduled">Agendada</SelectItem>
-                                        <SelectItem value="confirmed">Confirmada</SelectItem>
-                                        <SelectItem value="completed">Concluída</SelectItem>
-                                        <SelectItem value="cancelled">Cancelada</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div>
-                                    <Label>Observações</Label>
-                                    <Textarea
-                                      value={editingAppointment.notes || ""}
-                                      onChange={(e) =>
-                                        setEditingAppointment({ ...editingAppointment, notes: e.target.value })
-                                      }
-                                      placeholder="Adicione observações sobre a consulta..."
-                                    />
-                                  </div>
-                                  <Button
-                                    onClick={() =>
-                                      updateAppointmentStatus(
-                                        editingAppointment.id,
-                                        editingAppointment.status,
-                                        editingAppointment.notes,
-                                      )
-                                    }
-                                    disabled={loading}
-                                    className="w-full bg-turquoise hover:bg-turquoise/90"
-                                  >
-                                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Salvar Alterações
-                                  </Button>
-                                </div>
-                              )}
-                            </DialogContent>
+                            </DialogTrigger> 
                           </Dialog>
                         </div>
                       </div>
@@ -538,6 +506,53 @@ export function AdminDashboard({
                 )}
               </CardContent>
             </Card>
+            {/* Dialog for editing appointment - moved outside the loop for better performance and state management */}
+            <Dialog open={!!editingAppointment} onOpenChange={(isOpen) => !isOpen && setEditingAppointment(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Detalhes da Consulta</DialogTitle>
+                </DialogHeader>
+                {editingAppointment && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Status</Label>
+                      <Select
+                        value={editingAppointment.status}
+                        onValueChange={(value) => setEditingAppointment({ ...editingAppointment, status: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="scheduled">Agendada</SelectItem>
+                          <SelectItem value="confirmed">Confirmada</SelectItem>
+                          <SelectItem value="completed">Concluída</SelectItem>
+                          <SelectItem value="cancelled">Cancelada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Observações</Label>
+                      <Textarea
+                        value={editingAppointment.notes || ""}
+                        onChange={(e) => setEditingAppointment({ ...editingAppointment, notes: e.target.value })}
+                        placeholder="Adicione observações sobre a consulta..."
+                      />
+                    </div>
+                    <Button
+                      onClick={() =>
+                        updateAppointmentStatus(editingAppointment.id, editingAppointment.status, editingAppointment.notes)
+                      }
+                      disabled={loading}
+                      className="w-full bg-turquoise hover:bg-turquoise/90"
+                    >
+                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Salvar Alterações
+                    </Button>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* Appointments Tab */}
@@ -606,8 +621,11 @@ export function AdminDashboard({
             <div className="mt-8">
               <h3 className="text-xl font-bold text-navy mb-4">Próximas Consultas Agendadas</h3>
               <div className="space-y-4">
-                {upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                {upcomingAppointments.map(appointment => (
+                  <div
+                    key={appointment.id}
+                    className={`flex items-center justify-between p-4 rounded-lg ${getStatusCardClass(appointment.status)}`}
+                  >
                     <div className="space-y-1">
                       <p className="font-medium text-navy">
                         {format(new Date(appointment.appointment_date), "dd/MM/yyyy 'às' HH:mm")} - {appointment.services.title}
@@ -1186,7 +1204,10 @@ export function AdminDashboard({
           <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-2">
             {viewingPatientHistory && getPatientAppointments(viewingPatientHistory.id).length > 0 ? (
               getPatientAppointments(viewingPatientHistory.id).map((apt) => (
-                <div key={apt.id} className="p-3 bg-gray-50 rounded-md flex justify-between items-center">
+                <div
+                  key={apt.id}
+                  className={`p-3 rounded-md flex justify-between items-center ${getStatusCardClass(apt.status)}`}
+                >
                   <div>
                     <p className="font-medium">{apt.services.title}</p>
                     <p className="text-sm text-gray-600">

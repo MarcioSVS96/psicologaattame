@@ -49,6 +49,16 @@ export default async function DashboardPage() {
   const nextAppointment = upcomingAppointments[0]
   const upcomingAppointmentsCount = upcomingAppointments.length
 
+  const getStatusCardClass = (status: string | undefined) => {
+    if (!status) return ""
+    const statusConfig = {
+      scheduled: "bg-blue-50 border-blue-200",
+      confirmed: "bg-green-50 border-green-200",
+    }
+    const key = status as keyof typeof statusConfig
+    return statusConfig[key] || ""
+  }
+
   return (
     <div className="min-h-screen bg-warm-gray">
       <header className="bg-white border-b border-gray-200">
@@ -98,7 +108,7 @@ export default async function DashboardPage() {
                 </Card>
 
                 {nextAppointment && (
-                  <Card>
+                  <Card className={getStatusCardClass(nextAppointment.status)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">Próxima Consulta</CardTitle>
                       <Calendar className="h-4 w-4 text-turquoise" />
