@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const { data: appointment, error: appointmentError } = await supabase
       .from("appointments")
       .insert({
-        patient_id: user.id,
+        user_id: user.id,
         service_id,
         appointment_date,
         notes,
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
         )
       `,
       )
-      .eq("patient_id", user.id)
+      .eq("user_id", user.id)
       .order("appointment_date", { ascending: true })
 
     if (error) {
