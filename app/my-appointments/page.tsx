@@ -1,81 +1,128 @@
-import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { MyAppointmentsList } from "@/components/my-appointments-list"
+import { redirect } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, ArrowLeft, History } from "lucide-react"
+import Link from "next/link"
+import { format, isAfter, parseISO } from "date-fns"
+import { ptBR } from "date-fns/locale"
 
 export default async function MyAppointmentsPage() {
   const supabase = await createClient()
 
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser()
 
-  if (error || !user) {
-    redirect("/auth/login?redirect=/my-appointments")
+  if (!user) {
+    redirect("/auth/login")
   }
 
-  // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  // Get user's appointments
-  const { data: appointments } = await supabase
+  // Busca os agendamentos do usuário, incluindo detalhes do serviço
+  const { data: appointments, error } = await supabase
     .from("appointments")
-    .select(
-      `
-      *,
-      services (
-        title,
-        duration_minutes,
-        price
-      )
-    `,
-    )
-    .eq("patient_id", user.id)
-    .order("appointment_date", { ascending: true })
+    .select("id, appointment_date, status, services(title, duration_minutes)")
+    .eq("user_id", user.id)
+    .order("appointment_date", { ascending: false }) // Mais recentes primeiro
+
+  if (error) {
+    console.error("Erro ao buscar agendamentos:", error)
+    // Você pode redirecionar para uma página de erro ou mostrar uma mensagem
+    redirect("/dashboard")
+  }
+
+  const allAppointments = appointments || []
+  const upcomingAppointments = allAppointments.filter((apt) => isAfter(parseISO(apt.appointment_date), new Date()))
+  const pastAppointments = allAppointments.filter((apt) => !isAfter(parseISO(apt.appointment_date), new Date()))
+
+  const getStatusBadge = (status: string | null) => {
+    if (!status) return <Badge variant="secondary">Indefinido</Badge>
+
+    const statusConfig = {
+      scheduled: { label: "Agendada", variant: "secondary" as const },
+      confirmed: { label: "Confirmada", variant: "default" as const },
+      completed: { label: "Concluída", variant: "outline" as const },
+      cancelled: { label: "Cancelada", variant: "destructive" as const },
+    }
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.scheduled
+    return <Badge variant={config.variant}>{config.label}</Badge>
+  }
+
+  const AppointmentCard = ({ appointment }: { appointment: (typeof allAppointments)[0] }) => (
+    <Card className="shadow-sm hover:shadow-md transition-shadow">
+      <CardContent className="p-4 flex justify-between items-center">
+        <div className="space-y-1">
+          <p className="font-semibold text-navy">{appointment.services?.title}</p>
+          <p className="text-sm text-gray-600 flex items-center">
+            <Calendar className="h-4 w-4 mr-2" />
+            {format(parseISO(appointment.appointment_date), "dd 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR })}
+          </p>
+        </div>
+        {getStatusBadge(appointment.status)}
+      </CardContent>
+    </Card>
+  )
 
   return (
-    <div className="min-h-screen bg-warm-gray">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <a href="/" className="text-2xl font-serif font-bold text-navy">
-                Beatriz Attame
-              </a>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-600">Minhas Consultas</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Olá, {profile?.full_name || user.email}</span>
-              <a
-                href="/dashboard"
-                className="text-sm text-turquoise hover:text-turquoise/80 transition-colors font-medium"
-              >
-                Voltar
-              </a>
-            </div>
-          </div>
+    <div className="min-h-screen bg-warm-gray p-4 sm:p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <Button asChild variant="ghost" size="sm" className="mb-4 -ml-4 text-navy hover:bg-navy/10">
+            <Link href="/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para o Painel
+            </Link>
+          </Button>
+          <h1 className="text-3xl font-bold text-navy">Minhas Consultas</h1>
+          <p className="text-gray-600 mt-1">Veja aqui o histórico e os próximos agendamentos.</p>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-navy">Minhas Consultas</h1>
-              <p className="text-gray-600 mt-2">Gerencie seus agendamentos e histórico de consultas</p>
-            </div>
-            <a
-              href="/book-appointment"
-              className="bg-turquoise hover:bg-turquoise/90 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-            >
-              Nova Consulta
-            </a>
+        {allAppointments.length === 0 ? (
+          <Card className="text-center py-12">
+            <CardHeader>
+              <CardTitle className="text-navy">Nenhuma consulta encontrada</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Você ainda não agendou sua primeira consulta.</p>
+              <Button asChild className="bg-turquoise hover:bg-turquoise/90 text-white">
+                <Link href="/appointment-booking">Agendar Agora</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-8">
+            {/* Próximas Consultas */}
+            <section>
+              <h2 className="text-2xl font-semibold text-navy mb-4 flex items-center">
+                <Calendar className="h-6 w-6 mr-3 text-turquoise" />
+                Próximas Consultas
+              </h2>
+              <div className="space-y-4">
+                {upcomingAppointments.length > 0 ? (
+                  upcomingAppointments.map((apt) => <AppointmentCard key={apt.id} appointment={apt} />)
+                ) : (
+                  <p className="text-gray-500 pl-2">Você não possui nenhuma consulta futura.</p>
+                )}
+              </div>
+            </section>
+
+            {/* Histórico de Consultas */}
+            <section>
+              <h2 className="text-2xl font-semibold text-navy mb-4 flex items-center">
+                <History className="h-6 w-6 mr-3 text-turquoise" />
+                Histórico de Consultas
+              </h2>
+              <div className="space-y-4">
+                {pastAppointments.map((apt) => (
+                  <AppointmentCard key={apt.id} appointment={apt} />
+                ))}
+              </div>
+            </section>
           </div>
-
-          <MyAppointmentsList appointments={appointments || []} />
-        </div>
-      </main>
+        )}
+      </div>
     </div>
   )
 }

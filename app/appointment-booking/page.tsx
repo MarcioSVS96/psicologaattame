@@ -65,15 +65,16 @@ export default function AppointmentBookingPage() {
       const fetchSlots = async () => {
         setIsLoading(true)
         const dateString = format(selectedDate, "yyyy-MM-dd")
-        const { data, error } = await supabase.rpc("get_available_slots", {
-          query_date: dateString,
-        })
-
-        if (error) {
+        try {
+          const response = await fetch(`/api/availability?date=${dateString}`)
+          if (!response.ok) {
+            throw new Error("Falha ao buscar horários")
+          }
+          const data = await response.json()
+          setAvailableSlots(data.slots || [])
+        } catch (error) {
           console.error("Erro ao buscar horários:", error)
           setAvailableSlots([])
-        } else {
-          setAvailableSlots(data || [])
         }
         setIsLoading(false)
       }
