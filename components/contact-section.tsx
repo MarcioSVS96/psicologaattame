@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle } from "lucide-react"
 
@@ -83,29 +84,6 @@ export function ContactSection() {
       description: "Sáb: 9h às 13h",
     },
   ]
-
-  if (isSubmitted) {
-    return (
-      <section id="contact" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="border-0 shadow-lg max-w-2xl mx-auto">
-            <CardContent className="p-8 text-center space-y-6">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="h-8 w-8 text-green-600" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-navy">Mensagem Enviada com Sucesso!</h3>
-                <p className="text-gray-600">Obrigada pelo seu contato. Retornarei sua mensagem em até 24 horas.</p>
-              </div>
-              <Button onClick={() => setIsSubmitted(false)} className="bg-turquoise hover:bg-turquoise/90 text-white">
-                Enviar Nova Mensagem
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    )
-  }
 
   return (
     <section id="contact" className="py-20 bg-white">
@@ -245,6 +223,24 @@ export function ContactSection() {
             </Card>
           </div>
         </div>
+
+        {/* Success Dialog */}
+        <Dialog open={isSubmitted} onOpenChange={setIsSubmitted}>
+          <DialogContent className="sm:max-w-md">
+            <div className="p-6 text-center space-y-6">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-navy">Mensagem Enviada!</h3>
+                <p className="text-gray-600">Obrigada pelo seu contato. Retornarei sua mensagem em até 24 horas.</p>
+              </div>
+              <Button onClick={() => setIsSubmitted(false)} className="w-full bg-turquoise hover:bg-turquoise/90 text-white">
+                Fechar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </section>
   )

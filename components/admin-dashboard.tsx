@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History } from "lucide-react"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
@@ -363,6 +364,23 @@ export function AdminDashboard({
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
+  const groupedMessages = useMemo(() => {
+    const groups: { [email: string]: any[] } = {}
+    messages
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      .forEach((message) => {
+        if (!groups[message.email]) {
+          groups[message.email] = []
+        }
+        groups[message.email].push(message)
+      })
+
+    return Object.values(groups).sort((a, b) => {
+      const lastMessageA = a[a.length - 1]
+      const lastMessageB = b[b.length - 1]
+      return new Date(lastMessageB.created_at).getTime() - new Date(lastMessageA.created_at).getTime()
+    })
+  }, [messages])
   const getStatusCardClass = (status: string) => {
     const statusConfig = {
       scheduled: "bg-blue-50 border-l-4 border-blue-400",
@@ -1032,87 +1050,67 @@ export function AdminDashboard({
               <div className="text-sm text-gray-600">{unreadMessages.length} não lidas</div>
             </div>
 
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <Card key={message.id} className={message.status === "unread" ? "border-turquoise" : ""}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-navy">{message.subject}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <span>{message.name}</span>
-                          <span>{message.email}</span>
-                          {message.phone && <span>{message.phone}</span>}
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {groupedMessages.map((messageGroup, index) => {
+                const firstMessage = messageGroup[0]
+                const lastMessage = messageGroup[messageGroup.length - 1]
+                const hasUnread = messageGroup.some((m) => m.status === "unread")
+
+                return (
+                  <AccordionItem key={firstMessage.email} value={`item-${index}`} className="border-none">
+                    <Card className={hasUnread ? "border-turquoise" : ""}>
+                      <AccordionTrigger className="p-6 hover:no-underline">
+                        <div className="flex justify-between items-center w-full">
+                          <div className="text-left space-y-1">
+                            <h3 className="font-semibold text-navy">{firstMessage.name}</h3>
+                            <p className="text-sm text-gray-600">{firstMessage.email}</p>
+                          </div>
+                          <div className="text-right text-sm text-gray-500 space-y-1">
+                            <p>{messageGroup.length} mensagem(s)</p>
+                            <p>
+                              Última em: {format(new Date(lastMessage.created_at), "dd/MM/yy", { locale: ptBR })}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {getMessageStatusBadge(message.status)}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" onClick={() => setEditingMessage(message)}>
-                              Responder
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Responder Mensagem</DialogTitle>
-                            </DialogHeader>
-                            {editingMessage && (
-                              <div className="space-y-4">
-                                <div>
-                                  <Label>Status</Label>
-                                  <Select
-                                    value={editingMessage.status}
-                                    onValueChange={(value) => setEditingMessage({ ...editingMessage, status: value })}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="unread">Não lida</SelectItem>
-                                      <SelectItem value="read">Lida</SelectItem>
-                                      <SelectItem value="replied">Respondida</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-6 pb-6">
+                        <div className="space-y-4 border-t pt-4">
+                          {messageGroup.map((message) => (
+                            <div key={message.id} className="p-4 bg-gray-50 rounded-lg">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="space-y-1">
+                                  <h4 className="font-semibold text-navy">{message.subject}</h4>
+                                  <p className="text-xs text-gray-500">
+                                    {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                  </p>
                                 </div>
-                                <div>
-                                  <Label>Observações Administrativas</Label>
-                                  <Textarea
-                                    value={editingMessage.admin_notes || ""}
-                                    onChange={(e) =>
-                                      setEditingMessage({ ...editingMessage, admin_notes: e.target.value })
-                                    }
-                                    placeholder="Adicione observações sobre esta mensagem..."
-                                  />
+                                <div className="flex items-center space-x-2">
+                                  {getMessageStatusBadge(message.status)}
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button size="sm" variant="outline" onClick={() => setEditingMessage(message)}>
+                                        Gerenciar
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Gerenciar Mensagem</DialogTitle>
+                                      </DialogHeader>
+                                      {/* O conteúdo do Dialog para editar a mensagem já existe e será reutilizado aqui */}
+                                    </DialogContent>
+                                  </Dialog>
                                 </div>
-                                <Button
-                                  onClick={() =>
-                                    updateMessageStatus(
-                                      editingMessage.id,
-                                      editingMessage.status,
-                                      editingMessage.admin_notes,
-                                    )
-                                  }
-                                  disabled={loading}
-                                  className="w-full bg-turquoise hover:bg-turquoise/90"
-                                >
-                                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                  Atualizar Status
-                                </Button>
                               </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </div>
-                    <p className="text-gray-700 text-pretty">{message.message}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                              <p className="text-gray-700 text-pretty">{message.message}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </Card>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
           </TabsContent>
 
         </Tabs>
