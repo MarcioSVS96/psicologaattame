@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search } from "lucide-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
+import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History } from "lucide-react"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import Link from "next/link" 
 import { format, isToday, isAfter, parseISO, startOfDay } from "date-fns"
@@ -332,9 +333,10 @@ export function AdminDashboard({
 
   const getPatientAppointments = (patientId: string) => {
     return appointments
-      .filter((apt) => apt.profiles.id === patientId)
+      .filter((apt) => apt.user_id === patientId)
       .sort((a, b) => {
-        return new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime()
+        // Usar parseISO para consistência e robustez na comparação de datas
+        return parseISO(b.appointment_date).getTime() - parseISO(a.appointment_date).getTime()
       })
   }
 
@@ -667,6 +669,17 @@ export function AdminDashboard({
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setViewingPatientHistory(patient)
+                            setIsHistoryDialogOpen(true)
+                          }}
+                        >
+                          <History className="h-4 w-4 mr-1" />
+                          Histórico
+                        </Button>
                         <Button asChild size="sm" variant="outline">
                           <Link href={`/admin/patients/${patient.id}`}>
                             <Eye className="h-4 w-4 mr-1" />
@@ -1222,12 +1235,14 @@ export function AdminDashboard({
           <DialogHeader>
             <DialogTitle>Histórico de Consultas: {viewingPatientHistory?.full_name}</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-2">
+          <div className="py-4">
+            <ScrollArea className="h-[60vh] pr-4">
+              <div className="space-y-3">
             {viewingPatientHistory && getPatientAppointments(viewingPatientHistory.id).length > 0 ? (
               getPatientAppointments(viewingPatientHistory.id).map((apt) => (
                 <div
                   key={apt.id}
-                  className={`p-3 rounded-md flex justify-between items-center ${getStatusCardClass(apt.status)}`}
+                  className={`p-3 rounded-lg flex justify-between items-center ${getStatusCardClass(apt.status)}`}
                 >
                   <div>
                     <p className="font-medium">{apt.services.title}</p>
@@ -1235,12 +1250,14 @@ export function AdminDashboard({
                       {format(parseISO(apt.appointment_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
                   </div>
-                  {getStatusBadge(apt.status)}
+                  {getStatusBadge(apt.status)} 
                 </div>
               ))
             ) : (
               <p className="text-center text-gray-500 py-4">Nenhuma consulta encontrada.</p>
             )}
+              </div>
+            </ScrollArea>
           </div>
         </DialogContent>
       </Dialog>
