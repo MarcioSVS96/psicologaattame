@@ -136,7 +136,6 @@ export function ContactSection() {
                       onChange={handleChange}
                       required
                       placeholder="Seu nome"
-                      autoComplete="name"
                     />
                   </div>
                   <div className="space-y-2">
@@ -147,7 +146,6 @@ export function ContactSection() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="(11) 99999-9999"
-                      autoComplete="tel"
                     />
                   </div>
                 </div>
@@ -162,7 +160,6 @@ export function ContactSection() {
                     onChange={handleChange}
                     required
                     placeholder="seu@email.com"
-                    autoComplete="email"
                   />
                 </div>
 
@@ -175,7 +172,6 @@ export function ContactSection() {
                     onChange={handleChange}
                     required
                     placeholder="Como posso ajudar?"
-                    autoComplete="off"
                   />
                 </div>
 
