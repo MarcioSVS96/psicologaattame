@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
-import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History } from "lucide-react"
+import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History, Trash2 } from "lucide-react"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import Link from "next/link" 
 import { format, isToday, isAfter, parseISO, startOfDay } from "date-fns"
@@ -55,6 +55,8 @@ export function AdminDashboard({
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
   const [patientToDelete, setPatientToDelete] = useState<any>(null)
   const [isDeletePatientDialogOpen, setIsDeletePatientDialogOpen] = useState(false)
+  const [messageToDelete, setMessageToDelete] = useState<any>(null)
+  const [isDeleteMessageDialogOpen, setIsDeleteMessageDialogOpen] = useState(false)
   const [patientSearchQuery, setPatientSearchQuery] = useState("")
   const [generalSettings, setGeneralSettings] = useState({ 
     sunday: { start: "09:00", end: "13:00", is_active: false },
@@ -133,22 +135,45 @@ export function AdminDashboard({
     }
   }
 
-  const updateMessageStatus = async (messageId: string, status: string, adminNotes?: string) => {
+  const markMessagesAsRead = (messageGroup: any[]) => {
+    const unreadMessageIds = messageGroup.filter((m) => m.status === "unread").map((m) => m.id)
+
+    if (unreadMessageIds.length === 0) return
+
+    // Atualiza o estado local imediatamente para feedback visual rápido
+    setMessages((prev) =>
+      prev.map((msg) => (unreadMessageIds.includes(msg.id) ? { ...msg, status: "read" } : msg)),
+    )
+
+    // Envia a requisição para o backend em segundo plano
+    fetch("/api/admin/messages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: unreadMessageIds, status: "read" }),
+    }).catch((error) => {
+      console.error("Falha ao sincronizar status da mensagem com o servidor:", error)
+      // Opcional: Adicionar lógica para reverter o estado ou notificar o usuário em caso de falha.
+    })
+  }
+
+  const deleteMessage = async (messageId: string) => {
     setLoading(true)
     try {
       const response = await fetch("/api/admin/messages", {
-        method: "PATCH",
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: messageId, status, admin_notes: adminNotes }),
+        body: JSON.stringify({ id: messageId }),
       })
 
       if (response.ok) {
-        const { message } = await response.json()
-        setMessages((prev) => prev.map((msg) => (msg.id === messageId ? { ...msg, ...message } : msg)))
-        setEditingMessage(null)
+        setMessages((prev) => prev.filter((msg) => msg.id !== messageId))
+        setIsDeleteMessageDialogOpen(false)
+        setMessageToDelete(null)
+      } else {
+        console.error("Falha ao excluir mensagem")
       }
     } catch (error) {
-      console.error("Error updating message:", error)
+      console.error("Erro ao excluir mensagem:", error)
     } finally {
       setLoading(false)
     }
@@ -381,6 +406,13 @@ export function AdminDashboard({
       return new Date(lastMessageB.created_at).getTime() - new Date(lastMessageA.created_at).getTime()
     })
   }, [messages])
+
+  const handleAccordionChange = (value: string) => {
+    const index = parseInt(value.split("-")[1], 10)
+    if (!isNaN(index) && groupedMessages[index]) {
+      markMessagesAsRead(groupedMessages[index])
+    }
+  }
   const getStatusCardClass = (status: string) => {
     const statusConfig = {
       scheduled: "bg-blue-50 border-l-4 border-blue-400",
@@ -1050,7 +1082,7 @@ export function AdminDashboard({
               <div className="text-sm text-gray-600">{unreadMessages.length} não lidas</div>
             </div>
 
-            <Accordion type="single" collapsible className="w-full space-y-4">
+            <Accordion type="single" collapsible onValueChange={handleAccordionChange} className="w-full space-y-4">
               {groupedMessages.map((messageGroup, index) => {
                 const firstMessage = messageGroup[0]
                 const lastMessage = messageGroup[messageGroup.length - 1]
@@ -1058,7 +1090,7 @@ export function AdminDashboard({
 
                 return (
                   <AccordionItem key={firstMessage.email} value={`item-${index}`} className="border-none">
-                    <Card className={hasUnread ? "border-turquoise" : ""}>
+                    <Card className={hasUnread ? "border-l-4 border-blue-400" : "border-l-4 border-green-500"}>
                       <AccordionTrigger className="p-6 hover:no-underline">
                         <div className="flex justify-between items-center w-full">
                           <div className="text-left space-y-1">
@@ -1086,19 +1118,17 @@ export function AdminDashboard({
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   {getMessageStatusBadge(message.status)}
-                                  <Dialog>
-                                    <DialogTrigger asChild>
-                                      <Button size="sm" variant="outline" onClick={() => setEditingMessage(message)}>
-                                        Gerenciar
-                                      </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                      <DialogHeader>
-                                        <DialogTitle>Gerenciar Mensagem</DialogTitle>
-                                      </DialogHeader>
-                                      {/* O conteúdo do Dialog para editar a mensagem já existe e será reutilizado aqui */}
-                                    </DialogContent>
-                                  </Dialog>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                                    onClick={() => {
+                                      setMessageToDelete(message)
+                                      setIsDeleteMessageDialogOpen(true)
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               </div>
                               <p className="text-gray-700 text-pretty">{message.message}</p>
@@ -1257,6 +1287,34 @@ export function AdminDashboard({
               </div>
             </ScrollArea>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Message Dialog */}
+      <Dialog open={isDeleteMessageDialogOpen} onOpenChange={setIsDeleteMessageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+          </DialogHeader>
+          {messageToDelete && (
+            <div className="space-y-4">
+              <p>
+                Você tem certeza que deseja excluir esta mensagem de{" "}
+                <span className="font-bold">{messageToDelete.name}</span> sobre "
+                <span className="italic">{messageToDelete.subject}</span>"?
+              </p>
+              <p className="text-sm font-medium text-red-600">Esta ação é irreversível.</p>
+              <Button
+                onClick={() => deleteMessage(messageToDelete.id)}
+                disabled={loading}
+                variant="destructive"
+                className="w-full"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sim, excluir mensagem
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
