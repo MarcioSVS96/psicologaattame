@@ -51,10 +51,13 @@ export default function AppointmentBookingPage() {
       }
 
       const { data: servicesData } = await supabase.from("services").select("*").eq("is_active", true)
-      const { data: profileData } = await supabase.from("profiles").select("full_name, email").eq("id", user.id).single()
+      const { data: profileData } = await supabase.from("profiles").select("full_name").eq("id", user.id).single()
 
       setServices(servicesData || [])
-      setProfile(profileData as Profile)
+      setProfile({
+        full_name: profileData?.full_name || "",
+        email: user.email || "",
+      })
       setIsLoading(false)
     }
     fetchData()
