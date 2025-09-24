@@ -1,63 +1,69 @@
-import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { createServerClient } from "@/lib/supabase/server"
+import { type NextRequest, NextResponse } from "next/server"
 
-async function isAdmin(supabase: any) {
+export async function GET(request: NextRequest) {
+  const supabase = createServerClient()
+
+  // Check if user is admin
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser()
-  if (!user) return false
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
-  return profile?.role === "admin"
+
+  if (profile?.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  const { data: messages, error } = await supabase
+    .from("contact_messages")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ messages })
 }
 
-export async function PATCH(request: Request) {
-  const supabase = await createClient()
-  if (!(await isAdmin(supabase))) {
-    return NextResponse.json({ message: "Acesso negado." }, { status: 403 })
+export async function PATCH(request: NextRequest) {
+  const supabase = createServerClient()
+
+  // Check if user is admin
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  try {
-    const { ids, status } = await request.json()
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0 || !status) {
-      return NextResponse.json({ message: "Dados inválidos." }, { status: 400 })
-    }
-
-    const { data, error } = await supabase
-      .from("contact_messages")
-      .update({ status })
-      .in("id", ids)
-      .select()
-
-    if (error) throw error
-
-    return NextResponse.json({ messages: data })
-  } catch (error: any) {
-    console.error("Erro ao atualizar mensagens:", error)
-    return NextResponse.json({ message: error.message || "Erro no servidor." }, { status: 500 })
-  }
-}
-
-export async function DELETE(request: Request) {
-  const supabase = await createClient()
-  if (!(await isAdmin(supabase))) {
-    return NextResponse.json({ message: "Acesso negado." }, { status: 403 })
+  if (profile?.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  try {
-    const { id } = await request.json()
+  const { id, status, admin_notes } = await request.json()
 
-    if (!id) {
-      return NextResponse.json({ message: "ID da mensagem é obrigatório." }, { status: 400 })
-    }
+  const { data, error } = await supabase
+    .from("contact_messages")
+    .update({
+      status,
+      admin_notes,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select()
 
-    const { error } = await supabase.from("contact_messages").delete().eq("id", id)
-
-    if (error) throw error
-
-    return NextResponse.json({ message: "Mensagem excluída com sucesso." }, { status: 200 })
-  } catch (error: any) {
-    console.error("Erro ao excluir mensagem:", error)
-    return NextResponse.json({ message: error.message || "Erro no servidor." }, { status: 500 })
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  return NextResponse.json({ message: data[0] })
 }
