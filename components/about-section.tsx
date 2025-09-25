@@ -26,7 +26,7 @@ export function AboutSection() {
   ]
 
   return (
-    <section id="about" className="py-20 bg-warm-gray">
+    <section id="about" className="min-h-screen flex items-center bg-warm-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Image */}
@@ -34,7 +34,7 @@ export function AboutSection() {
             <img
               src="/psychology-office-interior--cozy-therapy-room-with.jpg"
               alt="Consultório de Psicologia"
-              className="rounded-2xl shadow-2xl object-cover w-full h-[600px]"
+              className="rounded-2xl shadow-2xl object-cover w-full h-auto max-h-[85vh]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-navy/20 to-transparent rounded-2xl"></div>
           </div>
@@ -44,22 +44,17 @@ export function AboutSection() {
             <div className="space-y-4">
               <h2 className="text-4xl font-serif font-bold text-navy text-balance">Sobre mim</h2>
               <p className="text-lg text-gray-700 text-pretty leading-relaxed">
-                Sou psicóloga formada pela Universidade de São Paulo (USP) com especialização em Terapia
-                Cognitivo-Comportamental. Há mais de 5 anos dedico-me ao cuidado da saúde mental, ajudando pessoas a
+                 Há mais de 5 anos dedico-me ao cuidado da saúde mental, ajudando pessoas a
                 superarem desafios emocionais e desenvolverem uma vida mais plena e equilibrada.
-              </p>
-              <p className="text-lg text-gray-700 text-pretty leading-relaxed">
-                Acredito que cada pessoa possui recursos internos para promover mudanças positivas em sua vida. Meu
-                papel é facilitar esse processo, oferecendo ferramentas e estratégias personalizadas para cada situação.
               </p>
             </div>
 
             {/* Values Grid */}
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 gap-3">
               {values.map((value, index) => (
                 <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
+                  <CardContent className="p-1">
+                    <div className="flex flex-col items-center gap-1 text-center">
                       <div className="bg-turquoise/10 p-3 rounded-lg">
                         <value.icon className="h-6 w-6 text-turquoise" />
                       </div>
