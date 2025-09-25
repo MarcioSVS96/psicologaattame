@@ -1,69 +1,45 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
+import { NextResponse } from "next/server"
 
-export async function GET(request: NextRequest) {
-  const supabase = createServerClient()
+export async function PATCH(request: Request) {
+  const supabase = await createClient()
 
-  // Check if user is admin
+  // 1. Verificar se o usuário logado é um administrador
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  if (!user) {
+    return NextResponse.json({ message: "Acesso não autorizado" }, { status: 401 })
   }
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
 
   if (profile?.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    return NextResponse.json({ message: "Acesso negado. Somente administradores." }, { status: 403 })
   }
 
-  const { data: messages, error } = await supabase
-    .from("contact_messages")
-    .select("*")
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json({ messages })
-}
-
-export async function PATCH(request: NextRequest) {
-  const supabase = createServerClient()
-
-  // Check if user is admin
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
-
-  if (profile?.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
-
+  // 2. Obter os dados da mensagem do corpo da requisição
   const { id, status, admin_notes } = await request.json()
+  if (!id) {
+    return NextResponse.json({ message: "ID da mensagem é obrigatório" }, { status: 400 })
+  }
 
-  const { data, error } = await supabase
+  // 3. Atualizar a mensagem na tabela 'contact_messages'
+  const { data: updatedMessage, error } = await supabase
     .from("contact_messages")
     .update({
       status,
       admin_notes,
-      updated_at: new Date().toISOString(),
     })
     .eq("id", id)
     .select()
+    .single()
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error("Erro ao atualizar mensagem:", error)
+    return NextResponse.json({ message: `Erro ao atualizar mensagem: ${error.message}` }, { status: 500 })
   }
 
-  return NextResponse.json({ message: data[0] })
+  return NextResponse.json(updatedMessage)
 }

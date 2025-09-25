@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,11 +8,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
-import { Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History } from "lucide-react"
+import {
+  Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History,
+  Trash2,
+} from "lucide-react"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import Link from "next/link" 
 import { format, isToday, isAfter, parseISO, startOfDay } from "date-fns"
@@ -54,6 +63,8 @@ export function AdminDashboard({
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
   const [patientToDelete, setPatientToDelete] = useState<any>(null)
   const [isDeletePatientDialogOpen, setIsDeletePatientDialogOpen] = useState(false)
+  const [messageToDelete, setMessageToDelete] = useState<any>(null)
+  const [isDeleteMessageDialogOpen, setIsDeleteMessageDialogOpen] = useState(false)
   const [patientSearchQuery, setPatientSearchQuery] = useState("")
   const [generalSettings, setGeneralSettings] = useState({ 
     sunday: { start: "09:00", end: "13:00", is_active: false },
@@ -111,7 +122,7 @@ export function AdminDashboard({
     return slots
   }, [selectedDayForAvailability, generalSettings, dayNames])
 
-  const updateAppointmentStatus = async (appointmentId: string, status: string, notes?: string) => {
+  const updateAppointmentStatus = useCallback(async (appointmentId: string, status: string, notes?: string) => {
     setLoading(true)
     try {
       const response = await fetch("/api/admin/appointments", {
@@ -130,9 +141,9 @@ export function AdminDashboard({
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const updateMessageStatus = async (messageId: string, status: string, adminNotes?: string) => {
+  const updateMessageStatus = useCallback(async (messageId: string, status: string, adminNotes?: string) => {
     setLoading(true)
     try {
       const response = await fetch("/api/admin/messages", {
@@ -142,18 +153,43 @@ export function AdminDashboard({
       })
 
       if (response.ok) {
-        const { message } = await response.json()
-        setMessages((prev) => prev.map((msg) => (msg.id === messageId ? { ...msg, ...message } : msg)))
+        const updatedMessage = await response.json()
+        setMessages((prev) => prev.map((msg) => (msg.id === messageId ? { ...msg, ...updatedMessage } : msg)))
         setEditingMessage(null)
+      } else {
+        // Log de erro mais robusto
+        const errorText = await response.text()
+        try {
+          const errorData = JSON.parse(errorText)
+          console.error("Falha ao atualizar a mensagem:", errorData.message || errorData)
+        } catch (e) {
+          console.error("Falha ao atualizar a mensagem. Resposta não é JSON:", errorText)
+        }
       }
     } catch (error) {
       console.error("Error updating message:", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const createService = async () => {
+  const deleteMessage = useCallback(async (messageId: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/admin/messages?id=${messageId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== messageId))
+        setIsDeleteMessageDialogOpen(false)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const createService = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch("/api/admin/services", {
@@ -182,9 +218,9 @@ export function AdminDashboard({
     } finally {
       setLoading(false)
     }
-  }
+  }, [newService])
 
-  const updateService = async (serviceId: string, updates: any) => {
+  const updateService = useCallback(async (serviceId: string, updates: any) => {
     setLoading(true)
     try {
       const response = await fetch("/api/admin/services", {
@@ -208,9 +244,9 @@ export function AdminDashboard({
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const updatePatient = async (patientId: string, updates: any) => {
+  const updatePatient = useCallback(async (patientId: string, updates: any) => {
     setLoading(true)
     try {
       const response = await fetch("/api/admin/patients", {
@@ -233,9 +269,9 @@ export function AdminDashboard({
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const deletePatient = async (patientId: string) => {
+  const deletePatient = useCallback(async (patientId: string) => {
     setLoading(true)
     try {
       const response = await fetch("/api/admin/delete-patient", {
@@ -258,7 +294,7 @@ export function AdminDashboard({
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   // Fetch availability for a selected day
   useEffect(() => {
@@ -287,7 +323,7 @@ export function AdminDashboard({
   }, [selectedDayForAvailability])
 
   // Update availability (add/remove slots)
-  const updateAvailability = async (newSlots: string[]) => {
+  const updateAvailability = useCallback(async (newSlots: string[]) => {
     if (!selectedDayForAvailability) return
     setLoading(true)
     const dateString = format(selectedDayForAvailability, "yyyy-MM-dd")
@@ -308,16 +344,45 @@ export function AdminDashboard({
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedDayForAvailability])
 
-  const handleToggleSlot = (slot: string) => {
+  const handleToggleSlot = useCallback((slot: string) => {
     const newSlots = availableSlots.includes(slot)
       ? availableSlots.filter((s) => s !== slot)
       : [...availableSlots, slot]
 
     // We call updateAvailability directly to save the change
     updateAvailability(newSlots)
-  }
+  }, [availableSlots, updateAvailability])
+
+  // Group messages by email
+  const groupedMessages = useMemo(() => {
+    const groups: { [email: string]: any[] } = {}
+    messages.forEach((message) => {
+      if (!groups[message.email]) {
+        groups[message.email] = []
+      }
+      groups[message.email].push(message)
+    })
+    // Sort groups by the most recent message
+    return Object.values(groups).sort((a, b) => {
+      const lastMessageA = a[a.length - 1]
+      const lastMessageB = b[b.length - 1]
+      return new Date(lastMessageB.created_at).getTime() - new Date(lastMessageA.created_at).getTime()
+    })
+  }, [messages])
+
+  const handleAccordionChange = useCallback(async (value: string) => {
+    if (!value) return
+
+    const groupIndex = parseInt(value.replace("item-", ""), 10)
+    const messageGroup = groupedMessages[groupIndex]
+    const unreadInGroup = messageGroup.filter((m) => m.status === "unread")
+
+    for (const message of unreadInGroup) {
+      await updateMessageStatus(message.id, "read")
+    }
+  }, [groupedMessages, updateMessageStatus])
 
   // Calculate metrics
   const todayAppointments = appointments.filter((apt) => isToday(new Date(apt.appointment_date)))
@@ -1032,87 +1097,65 @@ export function AdminDashboard({
               <div className="text-sm text-gray-600">{unreadMessages.length} não lidas</div>
             </div>
 
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <Card key={message.id} className={message.status === "unread" ? "border-turquoise" : ""}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-navy">{message.subject}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <span>{message.name}</span>
-                          <span>{message.email}</span>
-                          {message.phone && <span>{message.phone}</span>}
+            <Accordion type="single" collapsible onValueChange={handleAccordionChange} className="w-full space-y-4">
+              {groupedMessages.map((messageGroup, index) => {
+                const firstMessage = messageGroup[0]
+                const lastMessage = messageGroup[messageGroup.length - 1]
+                const hasUnread = messageGroup.some((m) => m.status === "unread")
+
+                return (
+                  <AccordionItem key={firstMessage.email} value={`item-${index}`} className="border-none">
+                    <Card className={hasUnread ? "border-l-4 border-blue-400" : "border-l-4 border-green-500"}>
+                      <AccordionTrigger className="p-6 hover:no-underline">
+                        <div className="flex justify-between items-center w-full">
+                          <div className="text-left space-y-1">
+                            <h3 className="font-semibold text-navy">{firstMessage.name}</h3>
+                            <p className="text-sm text-gray-600">{firstMessage.email}</p>
+                          </div>
+                          <div className="text-right text-sm text-gray-500 space-y-1">
+                            <p>{messageGroup.length} mensagem(s)</p>
+                            <p>
+                              Última em: {format(new Date(lastMessage.created_at), "dd/MM/yy", { locale: ptBR })}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {getMessageStatusBadge(message.status)}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" onClick={() => setEditingMessage(message)}>
-                              Responder
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Responder Mensagem</DialogTitle>
-                            </DialogHeader>
-                            {editingMessage && (
-                              <div className="space-y-4">
-                                <div>
-                                  <Label>Status</Label>
-                                  <Select
-                                    value={editingMessage.status}
-                                    onValueChange={(value) => setEditingMessage({ ...editingMessage, status: value })}
+                      </AccordionTrigger>
+                      <AccordionContent className="px-6 pb-6">
+                        <div className="space-y-4 border-t pt-4">
+                          {messageGroup.map((message) => (
+                            <div key={message.id} className="p-4 bg-gray-50 rounded-lg">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="space-y-1">
+                                  <h4 className="font-semibold text-navy">{message.subject}</h4>
+                                  <p className="text-xs text-gray-500">
+                                    {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                  </p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  {getMessageStatusBadge(message.status)}
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                                    onClick={() => {
+                                      setMessageToDelete(message)
+                                      setIsDeleteMessageDialogOpen(true)
+                                    }}
                                   >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="unread">Não lida</SelectItem>
-                                      <SelectItem value="read">Lida</SelectItem>
-                                      <SelectItem value="replied">Respondida</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
-                                <div>
-                                  <Label>Observações Administrativas</Label>
-                                  <Textarea
-                                    value={editingMessage.admin_notes || ""}
-                                    onChange={(e) =>
-                                      setEditingMessage({ ...editingMessage, admin_notes: e.target.value })
-                                    }
-                                    placeholder="Adicione observações sobre esta mensagem..."
-                                  />
-                                </div>
-                                <Button
-                                  onClick={() =>
-                                    updateMessageStatus(
-                                      editingMessage.id,
-                                      editingMessage.status,
-                                      editingMessage.admin_notes,
-                                    )
-                                  }
-                                  disabled={loading}
-                                  className="w-full bg-turquoise hover:bg-turquoise/90"
-                                >
-                                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                  Atualizar Status
-                                </Button>
                               </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </div>
-                    <p className="text-gray-700 text-pretty">{message.message}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                              <p className="text-gray-700 text-pretty">{message.message}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </Card>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
           </TabsContent>
 
         </Tabs>
@@ -1259,6 +1302,34 @@ export function AdminDashboard({
               </div>
             </ScrollArea>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Message Dialog */}
+      <Dialog open={isDeleteMessageDialogOpen} onOpenChange={setIsDeleteMessageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+          </DialogHeader>
+          {messageToDelete && (
+            <div className="space-y-4">
+              <p>
+                Você tem certeza que deseja excluir esta mensagem de{" "}
+                <span className="font-bold">{messageToDelete.name}</span> sobre "
+                <span className="italic">{messageToDelete.subject}</span>"?
+              </p>
+              <p className="text-sm font-medium text-red-600">Esta ação é irreversível.</p>
+              <Button
+                onClick={() => deleteMessage(messageToDelete.id)}
+                disabled={loading}
+                variant="destructive"
+                className="w-full"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sim, excluir mensagem
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
