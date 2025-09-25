@@ -155,14 +155,14 @@ export default async function DashboardPage() {
             <CardHeader>
               <CardTitle className="text-navy">Ações Rápidas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button asChild className="w-full bg-turquoise hover:bg-turquoise/90 text-white font-bold">
+            <CardContent className="flex flex-col sm:flex-row gap-4">
+              <Button asChild className="flex-1 bg-turquoise hover:bg-turquoise/90 text-white font-bold">
                 <Link href="/appointment-booking">Agendar Nova Consulta</Link>
               </Button>
-              <Button asChild variant="outline" className="w-full bg-transparent">
+              <Button asChild variant="outline" className="flex-1 bg-transparent">
                 <Link href="/my-appointments">Ver Minhas Consultas</Link>
               </Button>
-              <Button asChild variant="outline" className="w-full bg-transparent">
+              <Button asChild variant="outline" className="flex-1 bg-transparent">
                 <Link href="/dashboard/profile">Atualizar Perfil</Link>
               </Button>
             </CardContent>
