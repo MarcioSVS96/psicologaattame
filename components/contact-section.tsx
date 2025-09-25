@@ -71,12 +71,6 @@ export function ContactSection() {
       description: "Resposta em até 24h",
     },
     {
-      icon: MapPin,
-      title: "Endereço",
-      content: "Rua das Flores, 123",
-      description: "São Paulo, SP",
-    },
-    {
       icon: Clock,
       title: "Horário",
       content: "Seg à Sex: 9h às 18h",
@@ -86,8 +80,8 @@ export function ContactSection() {
 
   if (isSubmitted) {
     return (
-      <section id="contact" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="contact" className="min-h-screen flex items-center bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <Card className="border-0 shadow-lg max-w-2xl mx-auto">
             <CardContent className="p-8 text-center space-y-6">
               <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
@@ -108,8 +102,8 @@ export function ContactSection() {
   }
 
   return (
-    <section id="contact" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="contact" className="min-h-screen flex items-center bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl font-serif font-bold text-navy text-balance">Entre em Contato</h2>
           <p className="text-xl text-gray-600 text-pretty max-w-3xl mx-auto">
@@ -215,8 +209,8 @@ export function ContactSection() {
             <div className="grid gap-6">
               {contactInfo.map((info, index) => (
                 <Card key={index} className="border-0 shadow-md">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
+                  <CardContent className="py-3">
+                    <div className="flex items-center space-x-4">
                       <div className="bg-turquoise/10 p-3 rounded-lg">
                         <info.icon className="h-6 w-6 text-turquoise" />
                       </div>
@@ -231,7 +225,7 @@ export function ContactSection() {
               ))}
             </div>
 
-            {/* Map placeholder */}
+            {/* Map placeholder 
             <Card className="border-0 shadow-md">
               <CardContent className="p-0">
                 <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
@@ -242,7 +236,7 @@ export function ContactSection() {
                   />
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </div>
