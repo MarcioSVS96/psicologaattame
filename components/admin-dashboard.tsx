@@ -65,6 +65,8 @@ export function AdminDashboard({
   const [isDeletePatientDialogOpen, setIsDeletePatientDialogOpen] = useState(false)
   const [messageToDelete, setMessageToDelete] = useState<any>(null)
   const [isDeleteMessageDialogOpen, setIsDeleteMessageDialogOpen] = useState(false)
+  const [viewingMessagesGroup, setViewingMessagesGroup] = useState<any[] | null>(null)
+  const [isMessagesDialogOpen, setIsMessagesDialogOpen] = useState(false)
   const [patientSearchQuery, setPatientSearchQuery] = useState("")
   const [generalSettings, setGeneralSettings] = useState({ 
     sunday: { start: "09:00", end: "13:00", is_active: false },
@@ -372,17 +374,17 @@ export function AdminDashboard({
     })
   }, [messages])
 
-  const handleAccordionChange = useCallback(async (value: string) => {
-    if (!value) return
+  const handleViewMessages = useCallback(async (messageGroup: any[]) => {
+    if (!messageGroup) return
 
-    const groupIndex = parseInt(value.replace("item-", ""), 10)
-    const messageGroup = groupedMessages[groupIndex]
+    setViewingMessagesGroup(messageGroup)
+    setIsMessagesDialogOpen(true)
+
     const unreadInGroup = messageGroup.filter((m) => m.status === "unread")
-
     for (const message of unreadInGroup) {
       await updateMessageStatus(message.id, "read")
     }
-  }, [groupedMessages, updateMessageStatus])
+  }, [updateMessageStatus])
 
   // Calculate metrics
   const todayAppointments = appointments.filter((apt) => isToday(new Date(apt.appointment_date)))
@@ -1097,65 +1099,38 @@ export function AdminDashboard({
               <div className="text-sm text-gray-600">{unreadMessages.length} não lidas</div>
             </div>
 
-            <Accordion type="single" collapsible onValueChange={handleAccordionChange} className="w-full space-y-4">
+            <div className="space-y-4">
               {groupedMessages.map((messageGroup, index) => {
                 const firstMessage = messageGroup[0]
                 const lastMessage = messageGroup[messageGroup.length - 1]
                 const hasUnread = messageGroup.some((m) => m.status === "unread")
 
                 return (
-                  <AccordionItem key={firstMessage.email} value={`item-${index}`} className="border-none">
-                    <Card className={hasUnread ? "border-l-4 border-blue-400" : "border-l-4 border-green-500"}>
-                      <AccordionTrigger className="p-6 hover:no-underline">
-                        <div className="flex justify-between items-center w-full">
-                          <div className="text-left space-y-1">
-                            <h3 className="font-semibold text-navy">{firstMessage.name}</h3>
-                            <p className="text-sm text-gray-600">{firstMessage.email}</p>
-                          </div>
-                          <div className="text-right text-sm text-gray-500 space-y-1">
-                            <p>{messageGroup.length} mensagem(s)</p>
-                            <p>
-                              Última em: {format(new Date(lastMessage.created_at), "dd/MM/yy", { locale: ptBR })}
-                            </p>
-                          </div>
+                  <Card
+                    key={firstMessage.email}
+                    className={`cursor-pointer hover:shadow-md transition-shadow ${
+                      hasUnread ? "border-l-4 border-blue-400" : "border-l-4 border-gray-300"
+                    }`}
+                    onClick={() => handleViewMessages(messageGroup)}
+                  >
+                    <div className="p-6">
+                      <div className="flex justify-between items-center w-full">
+                        <div className="text-left space-y-1">
+                          <h3 className="font-semibold text-navy">{firstMessage.name}</h3>
+                          <p className="text-sm text-gray-600">{firstMessage.email}</p>
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-6 pb-6">
-                        <div className="space-y-4 border-t pt-4">
-                          {messageGroup.map((message) => (
-                            <div key={message.id} className="p-4 bg-gray-50 rounded-lg">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="space-y-1">
-                                  <h4 className="font-semibold text-navy">{message.subject}</h4>
-                                  <p className="text-xs text-gray-500">
-                                    {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                  </p>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  {getMessageStatusBadge(message.status)}
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
-                                    onClick={() => {
-                                      setMessageToDelete(message)
-                                      setIsDeleteMessageDialogOpen(true)
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                              <p className="text-gray-700 text-pretty">{message.message}</p>
-                            </div>
-                          ))}
+                        <div className="text-right text-sm text-gray-500 space-y-1">
+                          <p>{messageGroup.length} mensagem(s)</p>
+                          <p>
+                            Última em: {format(new Date(lastMessage.created_at), "dd/MM/yy", { locale: ptBR })}
+                          </p>
                         </div>
-                      </AccordionContent>
-                    </Card>
-                  </AccordionItem>
+                      </div>
+                    </div>
+                  </Card>
                 )
               })}
-            </Accordion>
+            </div>
           </TabsContent>
 
         </Tabs>
@@ -1299,6 +1274,52 @@ export function AdminDashboard({
             ) : (
               <p className="text-center text-gray-500 py-4">Nenhuma consulta encontrada.</p>
             )}
+              </div>
+            </ScrollArea>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Messages Dialog */}
+      <Dialog open={isMessagesDialogOpen} onOpenChange={setIsMessagesDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Histórico de Mensagens: {viewingMessagesGroup?.[0]?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <ScrollArea className="h-[60vh] pr-4">
+              <div className="space-y-4">
+                {viewingMessagesGroup?.map((message) => (
+                  <div key={message.id} className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-navy">{message.subject}</h4>
+                        <p className="text-xs text-gray-500">
+                          {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {getMessageStatusBadge(message.status)}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation() // Impede que o clique feche o diálogo principal
+                            setMessageToDelete(message)
+                            setIsDeleteMessageDialogOpen(true)
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-gray-700 text-pretty">{message.message}</p>
+                  </div>
+                ))}
+                {(!viewingMessagesGroup || viewingMessagesGroup.length === 0) && (
+                  <p className="text-center text-gray-500 py-4">Nenhuma mensagem encontrada.</p>
+                )}
               </div>
             </ScrollArea>
           </div>
