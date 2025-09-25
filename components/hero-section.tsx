@@ -6,11 +6,11 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="pt-16 bg-gradient-to-br from-slate-900 to-slate-800 text-white"
+      className="min-h-screen flex items-center pt-16 bg-gradient-to-br from-slate-900 to-slate-800 text-white"
       style={{ background: "linear-gradient(to bottom right, #001f54, #1a3a6b)" }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid lg:grid-cols-2 gap-12 items-center py-8">
           {/* Content */}
           <div className="space-y-8">
             <div className="space-y-4">
