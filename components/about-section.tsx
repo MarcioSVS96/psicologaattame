@@ -54,7 +54,7 @@ export function AboutSection() {
               {values.map((value, index) => (
                 <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-1">
-                    <div className="flex flex-col items-center gap-1 text-center">
+                    <div className="flex flex-col items-center gap-2 text-center">
                       <div className="bg-turquoise/10 p-3 rounded-lg">
                         <value.icon className="h-6 w-6 text-turquoise" />
                       </div>
