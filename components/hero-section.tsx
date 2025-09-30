@@ -19,8 +19,7 @@ export function HeroSection() {
                 profissionalismo
               </h1>
               <p className="text-xl text-gray-200 text-pretty leading-relaxed">
-                Sou Beatriz Attame, psicóloga especializada em terapia individual, de casal e familiar. Ofereço um
-                espaço seguro e acolhedor para você encontrar o equilíbrio emocional.
+                Foco em psicoterapia individual, voltada para quem busca autoconhecimento, equilíbrio emocional e estratégias práticas para lidar com os desafios do dia a dia.
               </p>
             </div>
 
@@ -42,18 +41,18 @@ export function HeroSection() {
             </div>
 
             {/* Trust indicators */}
-            <div className="flex items-center space-x-8 pt-8">
+            <div className="flex items-center space-x-8">
               <div className="flex items-center space-x-2">
                 <Shield className="h-6 w-6" style={{ color: "#40e0d0" }} />
-                <span className="text-sm">CRP 06/123456</span>
+                <span className="text-sm">CRP 02/28474</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Heart className="h-6 w-6" style={{ color: "#40e0d0" }} />
-                <span className="text-sm">+5 anos de experiência</span>
+                <span className="text-sm">Psicologa Clínica</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="h-6 w-6" style={{ color: "#40e0d0" }} />
-                <span className="text-sm">+200 pacientes atendidos</span>
+                <span className="text-sm">Especialista em análise do comportamento</span>
               </div>
             </div>
           </div>
