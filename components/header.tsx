@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Menu, X, Phone, User } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
@@ -12,6 +13,7 @@ export function Header() {
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const supabase = createClient()
+  const pathname = usePathname()
 
   useEffect(() => {
     // Get initial user
@@ -37,12 +39,15 @@ export function Header() {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
+  const isHomePage = pathname === "/"
+
   const navigation = [
-    { name: "Início", href: "#hero" },
-    { name: "Serviços", href: "#services" },
-    { name: "Formação", href: "#education" },
-    { name: "Sobre", href: "#about" },
-    { name: "Contato", href: "#contact" },
+    { name: "Início", href: isHomePage ? "#hero" : "/#hero" },
+    { name: "Serviços", href: isHomePage ? "#services" : "/#services" },
+    { name: "Formação", href: isHomePage ? "#education" : "/#education" },
+    { name: "Sobre", href: isHomePage ? "#about" : "/#about" },
+    { name: "Contato", href: isHomePage ? "#contact" : "/#contact" },
+    { name: "Blog", href: "/blog" },
   ]
 
   return (

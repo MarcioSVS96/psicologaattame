@@ -6,6 +6,8 @@ import { ContactSection } from "@/components/contact-section"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { BannerSection } from "@/components/banner-section"
+import { LatestPosts } from "@/components/latest-posts"
+
 
 export default function HomePage() {
   return (
@@ -21,7 +23,15 @@ export default function HomePage() {
         buttonText="Saiba Mais"
         buttonLink="/services"
       />
+      <LatestPosts />
       <AboutSection />
+      <BannerSection
+        imageUrl="/banner.png"
+        title="Acompanhamentos psicoterapeuticos."
+        subtitle="100% Online"
+        buttonText="Saiba Mais"
+        buttonLink="/services"
+      />
       <ContactSection />
       <Footer />
     </main>

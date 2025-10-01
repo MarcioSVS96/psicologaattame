@@ -24,7 +24,7 @@ export default async function AdminPage() {
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
   // Get dashboard data
-  const [appointmentsResult, patientsResult, messagesResult, servicesResult] = await Promise.all([
+  const [appointmentsResult, patientsResult, messagesResult, servicesResult, postsResult] = await Promise.all([
     supabase
       .from("appointments")
       .select(
@@ -38,6 +38,10 @@ export default async function AdminPage() {
     supabase.from("profiles").select("*").eq("role", "patient").order("created_at", { ascending: false }),
     supabase.from("contact_messages").select("*").order("created_at", { ascending: false }),
     supabase.from("services").select("*").order("title"),
+    supabase
+      .from("posts")
+      .select("id, title, author_name, created_at, status, summary, content, image_url, image_alt")
+      .order("created_at", { ascending: false }),
   ])
 
   return (
@@ -46,6 +50,7 @@ export default async function AdminPage() {
       patients={patientsResult.data || []}
       messages={messagesResult.data || []}
       services={servicesResult.data || []}
+      posts={postsResult.data || []}
       user={user}
       profile={profile}
     />

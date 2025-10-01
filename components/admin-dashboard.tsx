@@ -1,5 +1,7 @@
 "use client"
 
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import {
   Accordion,
   AccordionContent,
@@ -17,22 +20,27 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog"
 import {
-  Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History,
-  Trash2,
+  Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History, Trash2,
+  BookOpen,
 } from "lucide-react"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import Link from "next/link" 
 import { format, isToday, isAfter, parseISO, startOfDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import type { User } from "@supabase/supabase-js"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { toast } from "sonner"
+import * as z from "zod"
+import { upsertPost, deletePost } from "@/app/admin/blog/[postId]/actions"
 
 interface AdminDashboardProps {
   appointments: any[]
   patients: any[]
   messages: any[]
   services: any[]
+  posts: any[]
   user: User
   profile: any
 }
@@ -42,6 +50,7 @@ export function AdminDashboard({
   patients: initialPatients,
   messages: initialMessages,
   services: initialServices,
+  posts: initialPosts,
   user,
   profile,
 }: AdminDashboardProps) {
@@ -50,6 +59,7 @@ export function AdminDashboard({
   const [patients, setPatients] = useState(initialPatients)
   const [messages, setMessages] = useState(initialMessages)
   const [services, setServices] = useState(initialServices)
+  const [posts, setPosts] = useState(initialPosts)
   const [loading, setLoading] = useState(false)
 
   // State for forms
@@ -80,6 +90,10 @@ export function AdminDashboard({
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false)
   const [editingSettings, setEditingSettings] = useState(generalSettings)
 
+  const [editingPost, setEditingPost] = useState<any>(null)
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false)
+  const [postToDelete, setPostToDelete] = useState<any>(null)
+  const [isDeletePostDialogOpen, setIsDeletePostDialogOpen] = useState(false)
 
   // State for availability management
   const [selectedDayForAvailability, setSelectedDayForAvailability] = useState<Date | undefined>(new Date())
@@ -90,6 +104,29 @@ export function AdminDashboard({
     price: "",
     duration_minutes: "",
     is_active: true,
+  })
+
+  // Schema de validação para o formulário do blog
+  const postSchema = z.object({
+    title: z.string().min(3, "O título deve ter pelo menos 3 caracteres."),
+    author_name: z.string().min(3, "O nome do autor é obrigatório."),
+    summary: z.string().min(10, "O resumo deve ter pelo menos 10 caracteres."),
+    content: z.string().min(10, "O conteúdo é obrigatório."),
+    image: z.instanceof(File).optional().nullable(),
+    image_alt: z.string().optional().nullable(),
+    status: z.enum(["draft", "published", "archived"]),
+  })
+
+  const postForm = useForm<z.infer<typeof postSchema>>({
+    resolver: zodResolver(postSchema),
+    defaultValues: {
+      title: "",
+      author_name: "Beatriz Attame",
+      summary: "",
+      content: "",
+      image_alt: "",
+      status: "draft",
+    },
   })
 
   // Availability Management
@@ -357,6 +394,68 @@ export function AdminDashboard({
     updateAvailability(newSlots)
   }, [availableSlots, updateAvailability])
 
+  // Abre o diálogo de post e reseta o formulário
+  useEffect(() => {
+    if (isPostDialogOpen) {
+      postForm.reset({
+        title: editingPost?.title || "",
+        author_name: editingPost?.author_name || "Beatriz Attame",
+        summary: editingPost?.summary || "",
+        content: editingPost?.content || "", // Agora é texto simples
+        image_alt: editingPost?.image_alt || "",
+        status: editingPost?.status || "draft",
+        image: null,
+      })
+    }
+  }, [isPostDialogOpen, editingPost, postForm])
+
+  const handlePostSubmit = async (values: z.infer<typeof postSchema>) => {
+    setLoading(true)
+    const formData = new FormData()
+    if (editingPost?.id) {
+      formData.append("id", editingPost.id)
+    }
+    formData.append("title", values.title)
+    formData.append("author_name", values.author_name)
+    formData.append("summary", values.summary)
+    formData.append("content", values.content)
+    formData.append("status", values.status)
+    if (values.image) {
+      formData.append("image", values.image)
+    }
+    if (values.image_alt) {
+      formData.append("image_alt", values.image_alt)
+    }
+
+    // A action `upsertPost` agora retorna um objeto com o resultado
+    const result = await upsertPost(formData)
+
+    if (result.success) {
+      toast.success(result.message)
+      // A action não redireciona mais, então fechamos o diálogo e atualizamos o estado
+      setIsPostDialogOpen(false)
+      setPosts(result.posts || []) // A action precisa retornar a lista atualizada
+    } else {
+      toast.error(result.message)
+    }
+    setLoading(false)
+  }
+
+  const handleDeletePost = async (postId: string) => {
+    setLoading(true)
+    const result = await deletePost(postId)
+
+    if (result.success) {
+      toast.success(result.message)
+      setPosts(result.posts || [])
+      setIsDeletePostDialogOpen(false)
+      setPostToDelete(null)
+    } else {
+      toast.error(result.message)
+    }
+    setLoading(false)
+  }
+
   // Group messages by email
   const groupedMessages = useMemo(() => {
     const groups: { [email: string]: any[] } = {}
@@ -468,11 +567,12 @@ export function AdminDashboard({
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="appointments">Consultas</TabsTrigger>
             <TabsTrigger value="patients">Pacientes</TabsTrigger>
             <TabsTrigger value="messages">Mensagens</TabsTrigger>
+            <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
@@ -787,6 +887,91 @@ export function AdminDashboard({
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Blog Tab */}
+          <TabsContent value="blog" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-navy">Gerenciar Blog</h2>
+              <Button
+                className="bg-turquoise hover:bg-turquoise/90 text-white"
+                onClick={() => {
+                  setEditingPost(null)
+                  setIsPostDialogOpen(true)
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Post
+              </Button>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Todos os Posts</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Título</TableHead>
+                      <TableHead>Autor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data de Criação</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {posts && posts.length > 0 ? (
+                      posts.map(post => (
+                        <TableRow key={post.id}>
+                          <TableCell className="font-medium">{post.title}</TableCell>
+                          <TableCell>{post.author_name}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                post.status === "published"
+                                  ? "default"
+                                  : post.status === "draft"
+                                  ? "secondary"
+                                  : "destructive"
+                              }
+                            >
+                              {post.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{format(new Date(post.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingPost(post)
+                                setIsPostDialogOpen(true)
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                setPostToDelete(post)
+                                setIsDeletePostDialogOpen(true)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow><TableCell colSpan={5} className="text-center">Nenhum post encontrado.</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Settings Tab */}
@@ -1184,6 +1369,162 @@ export function AdminDashboard({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Blog Post Dialog (Create/Edit) */}
+      <Dialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{editingPost ? "Editar Post" : "Criar Novo Post"}</DialogTitle>
+            <DialogDescription>
+              Preencha os campos abaixo para criar ou editar um post para o blog.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...postForm}>
+            <form onSubmit={postForm.handleSubmit(handlePostSubmit)} className="space-y-6 py-4 max-h-[80vh] overflow-y-auto pr-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Title */}
+                <FormField
+                  control={postForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Tema (Título)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Como lidar com a ansiedade" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Author */}
+                <FormField
+                  control={postForm.control}
+                  name="author_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Autor</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Status */}
+                  <FormField
+                    control={postForm.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl> 
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="draft">Rascunho</SelectItem>
+                            <SelectItem value="published">Publicado</SelectItem>
+                            <SelectItem value="archived">Arquivado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+
+              {/* Summary */}
+              <FormField
+                control={postForm.control}
+                name="summary"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Resumo</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Um breve resumo que aparecerá na listagem do blog." {...field} rows={3} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Content */}
+              <FormField
+                control={postForm.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Conteúdo</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Escreva o conteúdo completo do seu post aqui." {...field} rows={10} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Image */}
+              <div className="space-y-2">
+                <Label>Imagem de Destaque</Label>
+                {editingPost?.image_url && (
+                  <div className="relative w-full h-40 rounded-md overflow-hidden border">
+                    <img src={editingPost.image_url} alt={editingPost.image_alt || "Imagem atual"} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <FormField
+                  control={postForm.control}
+                  name="image"
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-normal">
+                        {editingPost?.image_url ? "Substituir imagem" : "Enviar nova imagem"}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...fieldProps}
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) => onChange(event.target.files && event.target.files[0])}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={postForm.control}
+                  name="image_alt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Texto alternativo da imagem</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Descreva a imagem para acessibilidade" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">Cancelar</Button>
+            </DialogClose>
+            <Button type="submit" disabled={loading} className="ml-2 bg-turquoise hover:bg-turquoise/90">
+              {loading ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</>
+              ) : (
+                "Salvar Post"
+              )}
+            </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
       {/* Edit Patient Dialog */}
       <Dialog open={isEditPatientDialogOpen} onOpenChange={setIsEditPatientDialogOpen}>
         <DialogContent>
@@ -1348,6 +1689,34 @@ export function AdminDashboard({
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sim, excluir mensagem
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Post Dialog */}
+      <Dialog open={isDeletePostDialogOpen} onOpenChange={setIsDeletePostDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Você tem certeza que deseja excluir o post "{postToDelete?.title}"? Esta ação é irreversível.
+            </DialogDescription>
+          </DialogHeader>
+          {postToDelete && (
+            <div className="space-y-4 pt-4">
+              <Button
+                onClick={() => handleDeletePost(postToDelete.id)}
+                disabled={loading}
+                variant="destructive"
+                className="w-full"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sim, excluir post
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => setIsDeletePostDialogOpen(false)}>
+                Cancelar
               </Button>
             </div>
           )}
