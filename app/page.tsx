@@ -16,9 +16,9 @@ export default function HomePage() {
       <EducationSection />
       <BannerSection
         imageUrl="/banner.png"
-        title="Welcome to Our Website"
-        subtitle="We offer the best services for you"
-        buttonText="Learn More"
+        title="Acompanhamentos psicoterapeuticos."
+        subtitle="100% Online"
+        buttonText="Saiba Mais"
         buttonLink="/services"
       />
       <AboutSection />
