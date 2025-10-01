@@ -13,22 +13,15 @@ export default function HomePage() {
       <Header />
       <HeroSection />
       <ServicesSection />
-      <BannerSection
-        imageUrl="/profile.png"
-        title="Welcome to Our Website"
-        subtitle="We offer the best services for you"
-        buttonText="Learn More"
-        buttonLink="/services"
-      />
       <EducationSection />
-      <AboutSection />
       <BannerSection
-        imageUrl="/profile.png"
+        imageUrl="/banner.png"
         title="Welcome to Our Website"
         subtitle="We offer the best services for you"
         buttonText="Learn More"
         buttonLink="/services"
       />
+      <AboutSection />
       <ContactSection />
       <Footer />
     </main>
