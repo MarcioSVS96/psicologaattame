@@ -71,8 +71,9 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
       <Header />
       <main className="flex-grow pt-24 pb-16">
         <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="mb-8">
-            <Button asChild variant="ghost" size="sm" className="-ml-4 text-navy hover:bg-navy/10">
+          {/* Seção do botão de voltar com fundo para destaque */}
+          <div className="mb-8 bg-gray-50 p-2 rounded-lg inline-block">
+            <Button asChild variant="ghost" size="sm" className="text-navy hover:bg-navy/10">
               <Link href="/blog">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar para o Blog
