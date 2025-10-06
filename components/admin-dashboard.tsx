@@ -1415,13 +1415,13 @@ export function AdminDashboard({
                 title: editingPost?.title || "",
                 author_name: editingPost?.author_name || "Beatriz Attame",
                 summary: editingPost?.summary || "",
-                content: editingPost?.content || "",
+                content: editingPost?.content || "", // Corrigido para passar o conteúdo
                 image_alt: editingPost?.image_alt || "",
                 status: editingPost?.status || "draft",
                 image: null,
               });
             }
-          }, [editingPost, isPostDialogOpen, postForm])}
+          }, [editingPost, isPostDialogOpen])}
 
           <Form {...postForm}>
             <form onSubmit={postForm.handleSubmit(handlePostSubmit)} className="space-y-6 py-4 max-h-[80vh] overflow-y-auto pr-4">
