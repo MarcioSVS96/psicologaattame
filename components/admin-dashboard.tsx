@@ -465,6 +465,11 @@ export function AdminDashboard({
     return { published, drafts }
   }, [posts])
 
+  const mostPopularPost = useMemo(() => {
+    if (!posts || posts.length === 0) return null;
+    return [...posts].sort((a, b) => (b.view_count || 0) - (a.view_count || 0))[0];
+  }, [posts]);
+
   const handleViewMessages = useCallback(async (messageGroup: any[]) => {
     if (!messageGroup) return
 
@@ -576,7 +581,7 @@ export function AdminDashboard({
             </div>
 
             {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Consultas Hoje</CardTitle>
@@ -588,22 +593,6 @@ export function AdminDashboard({
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Posts no Blog</CardTitle>
-                  <BookOpen className="h-4 w-4 text-turquoise" />
-                </CardHeader>
-                <CardContent className="flex gap-4">
-                  <div className="text-2xl font-bold text-navy">{postMetrics.published}</div>
-                  <p className="text-xs text-gray-600 flex flex-col">
-                    <span className="text-green-600 font-medium">{postMetrics.published} publicados</span>{" "}
-                    <span className="text-blue-600 font-medium">{postMetrics.drafts} rascunhos</span>
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Próximas Consultas</CardTitle>
@@ -636,6 +625,34 @@ export function AdminDashboard({
                   <p className="text-xs text-gray-600">Aguardando resposta</p>
                 </CardContent>
               </Card>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Posts no Blog</CardTitle>
+                  <BookOpen className="h-4 w-4 text-turquoise" />
+                </CardHeader>
+                <CardContent className="flex gap-4">
+                  <div className="text-2xl font-bold text-navy">{postMetrics.published}</div>
+                  <p className="text-xs text-gray-600 flex flex-col">
+                    <span className="text-green-600 font-medium">{postMetrics.published} publicados</span>{" "}
+                    <span className="text-blue-600 font-medium">{postMetrics.drafts} rascunhos</span>
+                  </p>
+                </CardContent>
+              </Card>
+              {mostPopularPost && (
+                  <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Post Mais Popular</CardTitle>
+                      <Eye className="h-4 w-4 text-turquoise" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-lg font-bold text-navy truncate">{mostPopularPost.title}</div>
+                      <p className="text-xs text-gray-600">{mostPopularPost.view_count || 0} visualizações</p>
+                    </CardContent>
+                  </Card>
+              )}
             </div>
 
             {/* Today's Appointments */}
@@ -925,12 +942,15 @@ export function AdminDashboard({
                       <TableHead>Autor</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Data de Criação</TableHead>
+                      <TableHead className="text-right">Visualizações</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {posts && posts.length > 0 ? (
-                      posts.map(post => (
+                      [...posts]
+                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                      .map(post => (
                         <TableRow key={post.id}>
                           <TableCell className="font-medium">{post.title}</TableCell>
                           <TableCell>{post.author_name}</TableCell>
@@ -948,6 +968,7 @@ export function AdminDashboard({
                             </Badge>
                           </TableCell>
                           <TableCell>{format(new Date(post.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</TableCell>
+                          <TableCell className="text-right">{post.view_count || 0}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
@@ -974,7 +995,7 @@ export function AdminDashboard({
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={5} className="text-center">Nenhum post encontrado.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center">Nenhum post encontrado.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
