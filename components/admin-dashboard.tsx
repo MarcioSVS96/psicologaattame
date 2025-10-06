@@ -458,6 +458,13 @@ export function AdminDashboard({
     })
   }, [messages])
 
+  // Group posts by status
+  const postMetrics = useMemo(() => {
+    const published = posts.filter(p => p.status === "published").length
+    const drafts = posts.filter(p => p.status === "draft").length
+    return { published, drafts }
+  }, [posts])
+
   const handleViewMessages = useCallback(async (messageGroup: any[]) => {
     if (!messageGroup) return
 
@@ -569,7 +576,7 @@ export function AdminDashboard({
             </div>
 
             {/* Metrics Cards */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Consultas Hoje</CardTitle>
@@ -581,6 +588,22 @@ export function AdminDashboard({
                 </CardContent>
               </Card>
 
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Posts no Blog</CardTitle>
+                  <BookOpen className="h-4 w-4 text-turquoise" />
+                </CardHeader>
+                <CardContent className="flex gap-4">
+                  <div className="text-2xl font-bold text-navy">{postMetrics.published}</div>
+                  <p className="text-xs text-gray-600 flex flex-col">
+                    <span className="text-green-600 font-medium">{postMetrics.published} publicados</span>{" "}
+                    <span className="text-blue-600 font-medium">{postMetrics.drafts} rascunhos</span>
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Próximas Consultas</CardTitle>
