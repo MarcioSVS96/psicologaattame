@@ -78,7 +78,13 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
 
           {post.image_url && (
             <div className="relative h-64 md:h-96 w-full rounded-lg overflow-hidden mb-8 shadow-lg">
-              <Image src={post.image_url} alt={post.image_alt || post.title} layout="fill" objectFit="cover" priority />
+              <Image
+                src={post.image_url}
+                alt={post.image_alt || post.title}
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
           )}
 
@@ -90,4 +96,3 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
     </div>
   )
 }
-

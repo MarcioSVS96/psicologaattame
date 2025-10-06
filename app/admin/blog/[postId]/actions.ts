@@ -49,7 +49,7 @@ export async function upsertPost(formData: FormData) {
     }
 
     // Obter a URL pública da imagem
-    const { data: publicUrlData } = supabase.storage.from("blog_images").getPublicUrl(uploadData.path)
+    const { data: publicUrlData } = supabase.storage.from("blog_images").getPublicUrl(uploadData.path, { download: false })
     imageUrl = publicUrlData.publicUrl
   }
 
