@@ -40,7 +40,7 @@ export function PostForm({ post }: PostFormProps) {
       title: post?.title || "",
       author_name: post?.author_name || "Beatriz Attame", // Valor padrão
       summary: post?.summary || "",
-      content: post?.content ? JSON.stringify(post.content, null, 2) : "", // Simplificado
+      content: post?.content || "", // Garantir que seja tratado como string pura
       image_alt: post?.image_alt || "",
       status: post?.status || "draft",
     },
@@ -53,7 +53,7 @@ export function PostForm({ post }: PostFormProps) {
       formData.append("title", values.title)
       formData.append("author_name", values.author_name)
       formData.append("summary", values.summary)
-      formData.append("content", values.content) // Enviar como string JSON
+      formData.append("content", values.content)
       formData.append("status", values.status)
       if (values.image) {
         formData.append("image", values.image)

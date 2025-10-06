@@ -89,7 +89,8 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
           )}
 
           {/* O 'prose' é uma classe que aplica estilos de tipografia para textos longos. Adicionei estilos básicos em globals.css */}
-          <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">{post.content}</div>
+          {/* A classe 'whitespace-pre-wrap' preserva as quebras de linha e faz o wrap do texto */}
+          <div className="prose prose-lg max-w-full text-gray-800 leading-relaxed whitespace-pre-wrap break-words">{post.content}</div>
         </article>
       </main>
       <Footer />
