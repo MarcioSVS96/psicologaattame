@@ -537,6 +537,18 @@ export function AdminDashboard({
     return statusConfig[key] || "bg-gray-50"
   }
 
+  const getPostStatusBadge = (status: string) => {
+    const statusConfig = {
+      published: { label: "Publicado", variant: "default" as const },
+      draft: { label: "Rascunho", variant: "secondary" as const },
+      archived: { label: "Arquivado", variant: "destructive" as const },
+    }
+
+    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: "outline" as const }
+    return <Badge variant={config.variant}>{config.label}</Badge>
+  }
+
+
   return (
     <div className="min-h-screen bg-warm-gray">
       <header className="bg-white border-b border-gray-200">
@@ -954,19 +966,7 @@ export function AdminDashboard({
                         <TableRow key={post.id}>
                           <TableCell className="font-medium">{post.title}</TableCell>
                           <TableCell>{post.author_name}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                post.status === "published"
-                                  ? "default"
-                                  : post.status === "draft"
-                                  ? "secondary"
-                                  : "destructive"
-                              }
-                            >
-                              {post.status}
-                            </Badge>
-                          </TableCell>
+                          <TableCell>{getPostStatusBadge(post.status)}</TableCell>
                           <TableCell>{format(new Date(post.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</TableCell>
                           <TableCell className="text-right">{post.view_count || 0}</TableCell>
                           <TableCell className="text-right">
