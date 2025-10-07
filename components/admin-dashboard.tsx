@@ -24,6 +24,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import {
   Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History, Trash2,
   BookOpen,
+  Heart,
+  Brain,
+  Smile,
+  ClipboardCheck,
+  Briefcase,
+  Lightbulb,
 } from "lucide-react"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import Link from "next/link" 
@@ -101,10 +107,12 @@ export function AdminDashboard({
   const [newService, setNewService] = useState({
     title: "",
     description: "",
+    features: "", // Adicionado para características
     price: "",
     duration_minutes: "",
     is_active: true,
-  })
+    icon: "User", // Adicionado para ícone, inicializado com um valor padrão
+  })  
 
   // Schema de validação para o formulário do blog
   const postSchema = z.object({
@@ -128,6 +136,21 @@ export function AdminDashboard({
       status: "draft",
     },
   })
+
+  // useEffect para resetar o formulário do post quando o diálogo é aberto/fechado ou o post de edição muda
+  useEffect(() => {
+    if (isPostDialogOpen) {
+      postForm.reset({
+        title: editingPost?.title || "",
+        author_name: editingPost?.author_name || "Beatriz Attame",
+        summary: editingPost?.summary || "",
+        content: editingPost?.content || "",
+        image_alt: editingPost?.image_alt || "",
+        status: editingPost?.status || "draft",
+        image: null,
+      });
+    }
+  }, [editingPost, isPostDialogOpen, postForm]); // Adicionado postForm às dependências
 
   // Availability Management
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
@@ -237,16 +260,19 @@ export function AdminDashboard({
         body: JSON.stringify({
           title: newService.title,
           description: newService.description,
+          // Converte a string de características (uma por linha) em um array
+          features: newService.features.split('\n').filter(f => f.trim() !== ''),
           price: Number.parseFloat(newService.price),
           duration_minutes: Number.parseInt(newService.duration_minutes),
           is_active: newService.is_active,
+          icon: newService.icon,
         }),
       })
 
       if (response.ok) {
         const { service } = await response.json()
         setServices((prev) => [...prev, service])
-        setNewService({ title: "", description: "", price: "", duration_minutes: "", is_active: true })
+        setNewService({ title: "", description: "", features: "", price: "", duration_minutes: "", is_active: true, icon: "User" })
       } else {
         const errorData = await response.json()
         console.error("Failed to create service:", errorData.message)
@@ -257,15 +283,21 @@ export function AdminDashboard({
     } finally {
       setLoading(false)
     }
-  }, [newService])
+  }, [newService])  
 
   const updateService = useCallback(async (serviceId: string, updates: any) => {
     setLoading(true)
     try {
+      // Garante que as features sejam um array se for uma string
+      const featuresAsArray = typeof updates.features === 'string' 
+        ? updates.features.split('\n').filter((f: string) => f.trim() !== '') 
+        : updates.features;
+
       const response = await fetch("/api/admin/services", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: serviceId, ...updates }),
+        // Envia as features como array
+        body: JSON.stringify({ id: serviceId, ...updates, features: featuresAsArray }),
       })
 
       if (response.ok) {
@@ -548,11 +580,35 @@ export function AdminDashboard({
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
+  const serviceIcons: { [key: string]: React.ElementType } = {
+    Users,
+    Heart,
+    Brain,
+    BookOpen,
+  };
+  
+  const iconTranslations: { [key: string]: string } = {
+    User: "Pessoa (Individual)",
+    Users: "Pessoas (Grupo/Família)",
+    Heart: "Coração (Casal/Relacionamentos)",
+    Brain: "Cérebro (Saúde Mental/TCC)",
+    BookOpen: "Livro (Educacional)",
+    Smile: "Sorriso (Bem-estar/Autoestima)",
+    ClipboardCheck: "Prancheta (Avaliação/Diagnóstico)",
+    Briefcase: "Mala (Carreira/Profissional)",
+    Lightbulb: "Lâmpada (Desenvolvimento/Orientação)",
+  };
+  
+  // Adiciona os novos ícones ao mapa principal
+  serviceIcons.Smile = Smile;
+  serviceIcons.ClipboardCheck = ClipboardCheck;
+  serviceIcons.Briefcase = Briefcase;
+  serviceIcons.Lightbulb = Lightbulb;
 
   return (
     <div className="min-h-screen bg-warm-gray">
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/" className="text-2xl font-serif font-bold text-navy">
@@ -574,7 +630,7 @@ export function AdminDashboard({
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
@@ -1054,12 +1110,14 @@ export function AdminDashboard({
                                 <div>
                                   <Label>Descrição</Label>
                                   <Textarea
-                                    value={editingService.description || ""}
+                                    value={editingService.description ?? ""}
                                     onChange={(e) =>
                                       setEditingService({ ...editingService, description: e.target.value })
                                     }
                                   />
                                 </div>
+
+                                
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <Label>Preço (R$)</Label>
@@ -1087,6 +1145,33 @@ export function AdminDashboard({
                                       }
                                     />
                                   </div>
+                                </div>
+                                <div>
+                                  <Label>Características (uma por linha)</Label>
+                                  <Textarea
+                                    value={Array.isArray(editingService.features) ? editingService.features.join('\n') : editingService.features ?? ""}
+                                    onChange={(e) => setEditingService({ ...editingService, features: e.target.value })}
+                                    placeholder={"- Característica 1\n- Característica 2"}
+                                    rows={3}
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Ícone</Label>
+                                  <Select
+                                    value={editingService.icon}
+                                    onValueChange={(value) => setEditingService({ ...editingService, icon: value })}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione um ícone" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Object.entries(iconTranslations).map(([iconKey, iconLabel]) => (
+                                        <SelectItem key={iconKey} value={iconKey}>
+                                          {iconLabel}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <input
@@ -1141,6 +1226,14 @@ export function AdminDashboard({
                             placeholder="Descrição do serviço..."
                           />
                         </div>
+                        <div>
+                          <Label>Características (uma por linha)</Label>
+                          <Textarea
+                            value={newService.features}
+                            onChange={(e) => setNewService({ ...newService, features: e.target.value })}
+                            placeholder={"- Característica 1\n- Característica 2"}
+                          />
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label>Preço (R$)</Label>
@@ -1160,6 +1253,24 @@ export function AdminDashboard({
                               placeholder="60"
                             />
                           </div>
+                        </div>
+                        <div>
+                          <Label>Ícone</Label>
+                          <Select
+                            value={newService.icon}
+                            onValueChange={(value) => setNewService({ ...newService, icon: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um ícone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(iconTranslations).map(([iconKey, iconLabel]) => (
+                                <SelectItem key={iconKey} value={iconKey}>
+                                  {iconLabel}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="flex items-center space-x-2">
                           <input
@@ -1408,20 +1519,6 @@ export function AdminDashboard({
               Preencha os campos abaixo para criar ou editar um post para o blog.
             </DialogDescription>
           </DialogHeader>
-          {/* Este useEffect garante que o formulário seja resetado com os dados corretos quando o diálogo é aberto para edição ou criação. */}
-          {useEffect(() => {
-            if (isPostDialogOpen) {
-              postForm.reset({
-                title: editingPost?.title || "",
-                author_name: editingPost?.author_name || "Beatriz Attame",
-                summary: editingPost?.summary || "",
-                content: editingPost?.content || "", // Corrigido para passar o conteúdo
-                image_alt: editingPost?.image_alt || "",
-                status: editingPost?.status || "draft",
-                image: null,
-              });
-            }
-          }, [editingPost, isPostDialogOpen])}
 
           <Form {...postForm}>
             <form onSubmit={postForm.handleSubmit(handlePostSubmit)} className="space-y-6 py-4 max-h-[80vh] overflow-y-auto pr-4">

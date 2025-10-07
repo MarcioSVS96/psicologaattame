@@ -35,7 +35,7 @@ export function EducationSection() {
 
   return (
     <section id="education" className="min-h-screen flex items-center bg-warm-gray">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-5 pb-20">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl font-serif font-bold text-navy text-balance">Formação e Qualificações</h2>
           <p className="text-xl text-gray-600 text-pretty max-w-3xl mx-auto">

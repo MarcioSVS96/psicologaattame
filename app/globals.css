@@ -188,3 +188,44 @@ html {
   color: var(--color-navy);
   font-weight: 600;
 }
+
+/* Adicione ao final do seu arquivo app/globals.css */
+
+/* Container para o scroll horizontal dos serviços */
+.horizontal-scroll-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch; /* Melhora a experiência em iOS */
+  scroll-behavior: smooth; /* Anima a rolagem */
+}
+
+/* Esconde a barra de rolagem */
+.horizontal-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+.horizontal-scroll-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Estilo para cada card dentro do container de scroll */
+.horizontal-scroll-container > div {
+  scroll-snap-align: start;
+  flex: 0 0 100%; /* Mostra 1 card por vez em telas pequenas */
+  min-width: 320px;
+  max-width: 400px;
+}
+
+/* Ajustes para telas menores */
+@media (min-width: 768px) {
+  .horizontal-scroll-container > div {
+    flex-basis: calc(50% - 15px); /* Mostra 2 cards */
+  }
+}
+
+@media (min-width: 1280px) {
+  .horizontal-scroll-container > div {
+    flex-basis: calc(100% / 3 - 22px); /* Mostra 3 cards */
+  }
+}
