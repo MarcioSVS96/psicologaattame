@@ -15,7 +15,7 @@ export function Footer() {
             </p>
             <div className="flex items-center space-x-2 text-turquoise">
               <Heart className="h-5 w-5" />
-              <span className="text-sm">CRP 06/123456</span>
+              <span className="text-sm">CRP 02/28474</span>
             </div>
           </div>
 

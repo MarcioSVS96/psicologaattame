@@ -6,30 +6,26 @@ export function EducationSection() {
     {
       icon: GraduationCap,
       title: "Graduação em Psicologia",
-      institution: "Universidade de São Paulo (USP)",
-      year: "2018",
-      description: "Formação sólida em fundamentos da psicologia e práticas clínicas.",
-    },
-    {
-      icon: Award,
-      title: "Especialização em TCC",
-      institution: "Instituto de Terapia Cognitiva",
-      year: "2019",
-      description: "Especialização em Terapia Cognitivo-Comportamental para adultos.",
+      institution: "Faculdade de Ciências Humanas de Olinda - FACHO",
+      year: "2023",
     },
     {
       icon: BookOpen,
-      title: "Pós-graduação em Terapia de Casal",
-      institution: "PUC-SP",
-      year: "2020",
-      description: "Formação especializada em terapia de casal e relacionamentos.",
+      title: "Pós graduando em Terapia Cognitivo-Comportamental - TCC",
+      institution: "FACULDADE FAVENI",
+      year: "2025",
     },
     {
       icon: Users,
-      title: "Formação em Terapia Familiar",
-      institution: "Instituto Familiae",
-      year: "2021",
-      description: "Capacitação em dinâmicas familiares e terapia sistêmica.",
+      title: "Pós graduando em NEUROPSICOLOGIA",
+      institution: "Faculdade FAVENI",
+      year: "2025",
+    },
+    {
+      icon: Award,
+      title: "Especializada em Análise do Comportamento Aplicada",
+      institution: "FACULDADE ESUDA",
+      year: "2025",
     },
   ]
 
@@ -58,7 +54,6 @@ export function EducationSection() {
                   <h3 className="font-bold text-navy text-lg">{item.title}</h3>
                   <p className="font-medium text-turquoise">{item.institution}</p>
                   <p className="text-sm text-gray-500">{item.year}</p>
-                  <p className="text-sm text-gray-600 text-pretty">{item.description}</p>
                 </div>
               </CardContent>
             </Card>
@@ -69,7 +64,7 @@ export function EducationSection() {
         <div className="mt-16 text-center">
           <div className="inline-flex items-center space-x-2 bg-navy/5 px-6 py-3 rounded-full">
             <Award className="h-5 w-5 text-navy" />
-            <span className="font-semibold text-navy">CRP 06/123456 - Conselho Regional de Psicologia</span>
+            <span className="font-semibold text-navy">CRP 02/28474 - Conselho Regional de Psicologia</span>
           </div>
         </div>
       </div>
