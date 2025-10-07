@@ -61,7 +61,7 @@ export function ContactSection() {
     {
       icon: Phone,
       title: "Telefone",
-      content: "(11) 99999-9999",
+      content: "(81) 98571-2073",
       description: "WhatsApp disponível",
     },
     {
@@ -140,7 +140,7 @@ export function ContactSection() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="(11) 99999-9999"
+                      placeholder="(81) 98571-2073"
                       autoComplete="tel"
                     />
                   </div>
