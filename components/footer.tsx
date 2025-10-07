@@ -10,8 +10,7 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-2xl font-serif font-bold">Beatriz Attame</h3>
             <p className="text-gray-300 text-pretty">
-              Psicóloga dedicada ao cuidado da saúde mental, oferecendo atendimento humanizado e personalizado em São
-              Paulo.
+              Psicóloga dedicada ao cuidado da saúde mental, oferecendo atendimento humanizado e personalizado.
             </p>
             <div className="flex items-center space-x-2 text-turquoise">
               <Heart className="h-5 w-5" />
@@ -48,14 +47,14 @@ export function Footer() {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-turquoise" />
-                <span className="text-gray-300">contato@beatrizattame.com.br</span>
+                <span className="text-gray-300">psicologaattame@gmail.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-turquoise mt-0.5" />
                 <span className="text-gray-300">
-                  Rua das Flores, 123
+                  Recife/PE
                   <br />
-                  São Paulo, SP
+                  Atendimentos 100% online!
                 </span>
               </div>
             </div>

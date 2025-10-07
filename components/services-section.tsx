@@ -31,8 +31,7 @@ export async function ServicesSection() {
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl font-serif font-bold text-navy text-balance">Serviços Oferecidos</h2>
           <p className="text-xl text-gray-600 text-pretty max-w-3xl mx-auto">
-            Ofereço diferentes modalidades de atendimento psicológico, sempre com foco no acolhimento e na promoção do
-            bem-estar emocional.
+            Se você sente que é o momento de olhar para si, agende sua entrevista inicial.
           </p>
         </div>
 

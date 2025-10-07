@@ -19,7 +19,7 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Beatriz Attame - Psicóloga | Terapia Individual e de Casal",
   description:
-    "Psicóloga especializada em terapia individual, de casal e familiar. Atendimento humanizado e personalizado em São Paulo.",
+    "Psicóloga especializada em terapia individual, de casal e familiar. Atendimento humanizado e personalizado.",
   generator: "v0.app",
 }
 

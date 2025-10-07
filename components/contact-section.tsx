@@ -67,7 +67,7 @@ export function ContactSection() {
     {
       icon: Mail,
       title: "Email",
-      content: "contato@beatrizattame.com.br",
+      content: "psicologaattame@gmail.com",
       description: "Resposta em até 24h",
     },
     {

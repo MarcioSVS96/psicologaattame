@@ -30,6 +30,6 @@ insert into public.admin_settings (key, value, description) values
 ('business_hours', '{"monday": "09:00-18:00", "tuesday": "09:00-18:00", "wednesday": "09:00-18:00", "thursday": "09:00-18:00", "friday": "09:00-18:00", "saturday": "09:00-13:00", "sunday": "closed"}', 'Horários de funcionamento'),
 ('appointment_duration', '60', 'Duração padrão das consultas em minutos'),
 ('max_advance_booking_days', '30', 'Máximo de dias para agendamento antecipado'),
-('contact_email', 'contato@beatrizattame.com.br', 'Email de contato principal'),
-('contact_phone', '(11) 99999-9999', 'Telefone de contato principal'),
-('address', 'Rua das Flores, 123 - São Paulo, SP', 'Endereço do consultório');
+('contact_email', 'psicologaattame@gmail.com', 'Email de contato principal'),
+('contact_phone', '(81) 98571-2073', 'Telefone de contato principal'),
+('address', 'Recife, PE', 'Endereço do consultório');
