@@ -1,20 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-
-// Função auxiliar para validar se o usuário é administrador
-async function isAdmin(supabase: any) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return false
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
-  return profile?.role === "admin"
-}
+import { isAdmin as checkIsAdmin } from "@/lib/auth-utils" // Importando a função centralizada
 
 // GET: Busca os horários de uma data específica
 export async function GET(request: Request) {
-  const supabase = await createClient()
-  if (!(await isAdmin(supabase))) {
+  if (!(await checkIsAdmin())) {
     return NextResponse.json({ message: "Acesso negado." }, { status: 403 })
   }
 
@@ -25,7 +15,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "Data é obrigatória" }, { status: 400 })
   }
 
-  const { data, error } = await supabase.from("availabilities").select("slots").eq("date", date).single()
+  const { data, error } = await (await createClient()).from("availabilities").select("slots").eq("date", date).single()
 
   if (error && error.code !== "PGRST116") {
     // PGRST116 é o código para "nenhuma linha encontrada", o que é normal
@@ -38,8 +28,7 @@ export async function GET(request: Request) {
 
 // POST: Cria ou atualiza os horários de uma data
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  if (!(await isAdmin(supabase))) {
+  if (!(await checkIsAdmin())) {
     return NextResponse.json({ message: "Acesso negado." }, { status: 403 })
   }
 
@@ -50,7 +39,7 @@ export async function POST(request: Request) {
   }
 
   // `upsert` cria uma nova linha se a data não existir, ou atualiza se já existir.
-  const { data, error } = await supabase
+  const { data, error } = await (await createClient())
     .from("availabilities")
     .upsert({ date, slots }, { onConflict: "date" })
     .select()
