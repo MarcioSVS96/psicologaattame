@@ -32,7 +32,7 @@ export function AboutSection() {
           {/* Image */}
           <div className="relative">
             <img
-              src="/profile.png"
+              src="/about.jpg"
               alt="Consultório de Psicologia"
               className="rounded-2xl shadow-2xl object-cover w-full h-auto max-h-[85vh]"
             />

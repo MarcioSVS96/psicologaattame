@@ -16,6 +16,13 @@ const nextConfig = {
       },
     ],
   },
+  // Adicione esta configuração para resolver o erro de URL inválida com Server Actions
+  experimental: {
+    serverActions: true,
+  },
+  // Adicione esta configuração para resolver o erro de URL inválida
+  // com Server Actions em desenvolvimento.
+  hostname: 'localhost',
 }
 
 export default nextConfig
