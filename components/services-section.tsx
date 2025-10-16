@@ -27,7 +27,7 @@ export async function ServicesSection() {
 
   return (
     <section id="services" className="min-h-screen flex items-center bg-warm-gray">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl font-serif font-bold text-navy text-balance">Serviços Oferecidos</h2>
           <p className="text-xl text-gray-600 text-pretty max-w-3xl mx-auto">

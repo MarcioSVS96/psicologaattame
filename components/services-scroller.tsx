@@ -62,7 +62,7 @@ export function ServicesScroller({ services, isLoggedIn }: ServicesScrollerProps
   }
 
   return (
-    <div className="relative w-full px-12">
+    <div className="relative w-full px-8 md:px-12">
       {canScrollLeft && (
         <Button
           variant="outline"
