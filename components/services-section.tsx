@@ -19,12 +19,6 @@ export async function ServicesSection() {
     return null
   }
 
-  // Se houver 3 ou menos serviços, usamos um grid simples. Se houver mais, usamos o scroller.
-  const useScroller = services.length > 3
-  const containerClasses = useScroller
-    ? "" // A classe do scroller será controlada internamente
-    : "grid md:grid-cols-2 lg:grid-cols-3 gap-10 justify-center"
-
   return (
     <section id="services" className="min-h-screen flex items-center bg-warm-gray">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -35,12 +29,8 @@ export async function ServicesSection() {
           </p>
         </div>
 
-        {/* Renderiza o scroller apenas se houver mais de 3 serviços */}
-        {useScroller ? (
-          <ServicesScroller services={services} isLoggedIn={isLoggedIn} />
-        ) : (
-          <div className={containerClasses}>{/* O código para renderizar o grid simples foi movido para o scroller, mas poderia ser duplicado aqui se necessário */}</div>
-        )}
+        {/* Renderiza o scroller sempre, pois ele já contém a lógica para exibir os cards */}
+        <ServicesScroller services={services} isLoggedIn={isLoggedIn} />
 
         {/* Additional Info */}
         <div className="mt-16 text-center space-y-4">

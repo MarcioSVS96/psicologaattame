@@ -73,6 +73,8 @@ export function AdminDashboard({
   const [editingService, setEditingService] = useState<any>(null)
   const [isEditServiceDialogOpen, setIsEditServiceDialogOpen] = useState(false)
   const [editingMessage, setEditingMessage] = useState<any>(null)
+  const [serviceToDelete, setServiceToDelete] = useState<any>(null)
+  const [isDeleteServiceDialogOpen, setIsDeleteServiceDialogOpen] = useState(false)
   const [editingPatient, setEditingPatient] = useState<any>(null)
   const [isEditPatientDialogOpen, setIsEditPatientDialogOpen] = useState(false)
   const [viewingPatientHistory, setViewingPatientHistory] = useState<any>(null)
@@ -312,6 +314,26 @@ export function AdminDashboard({
       }
     } catch (error) {
       console.error("Error updating service:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const deleteService = useCallback(async (serviceId: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/admin/services?id=${serviceId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setServices((prev) => prev.filter((svc) => svc.id !== serviceId))
+        toast.success("Serviço excluído com sucesso!")
+        setIsDeleteServiceDialogOpen(false)
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.message || "Falha ao excluir o serviço.")
+      }
     } finally {
       setLoading(false)
     }
@@ -1081,120 +1103,28 @@ export function AdminDashboard({
                         <Badge variant={service.is_active ? "default" : "secondary"}>
                           {service.is_active ? "Ativo" : "Inativo"}
                         </Badge>
-                        <Dialog open={isEditServiceDialogOpen} onOpenChange={setIsEditServiceDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditingService(service)
-                                setIsEditServiceDialogOpen(true)
-                              }}
-                            >
-                              Editar
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Editar Serviço</DialogTitle>
-                            </DialogHeader>
-                            {editingService && (
-                              <div className="space-y-4">
-                                <div>
-                                  <Label>Nome do Serviço</Label>
-                                  <Input
-                                    value={editingService.title}
-                                    onChange={(e) => setEditingService({ ...editingService, title: e.target.value })}
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Descrição</Label>
-                                  <Textarea
-                                    value={editingService.description ?? ""}
-                                    onChange={(e) =>
-                                      setEditingService({ ...editingService, description: e.target.value })
-                                    }
-                                  />
-                                </div>
-
-                                
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label>Preço (R$)</Label>
-                                    <Input
-                                      type="number"
-                                      value={editingService.price}
-                                      onChange={(e) =>
-                                        setEditingService({
-                                          ...editingService,
-                                          price: Number.parseFloat(e.target.value),
-                                        })
-                                      }
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label>Duração (min)</Label>
-                                    <Input
-                                      type="number"
-                                      value={editingService.duration_minutes}
-                                      onChange={(e) =>
-                                        setEditingService({
-                                          ...editingService,
-                                          duration_minutes: Number.parseInt(e.target.value),
-                                        })
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <div>
-                                  <Label>Características (uma por linha)</Label>
-                                  <Textarea
-                                    value={Array.isArray(editingService.features) ? editingService.features.join('\n') : editingService.features ?? ""}
-                                    onChange={(e) => setEditingService({ ...editingService, features: e.target.value })}
-                                    placeholder={"- Característica 1\n- Característica 2"}
-                                    rows={3}
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Ícone</Label>
-                                  <Select
-                                    value={editingService.icon}
-                                    onValueChange={(value) => setEditingService({ ...editingService, icon: value })}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecione um ícone" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Object.entries(iconTranslations).map(([iconKey, iconLabel]) => (
-                                        <SelectItem key={iconKey} value={iconKey}>
-                                          {iconLabel}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={editingService.is_active}
-                                    onChange={(e) =>
-                                      setEditingService({ ...editingService, is_active: e.target.checked })
-                                    }
-                                  />
-                                  <Label>Serviço ativo</Label>
-                                </div>
-                                <Button
-                                  onClick={() => updateService(editingService.id, editingService)}
-                                  disabled={loading}
-                                  className="w-full bg-turquoise hover:bg-turquoise/90"
-                                >
-                                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                  Salvar Alterações
-                                </Button>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
+                        {/* O botão de Editar agora controla seu próprio diálogo */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingService(service)
+                            setIsEditServiceDialogOpen(true)
+                          }}
+                        >
+                          Editar
+                        </Button>
+                        {/* O botão de Excluir agora controla seu próprio diálogo */}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            setServiceToDelete(service)
+                            setIsDeleteServiceDialogOpen(true)
+                          }}
+                        >
+                          Excluir
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -1830,6 +1760,136 @@ export function AdminDashboard({
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sim, excluir mensagem
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Service Dialog */}
+      <Dialog open={isEditServiceDialogOpen} onOpenChange={setIsEditServiceDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Serviço</DialogTitle>
+          </DialogHeader>
+          {editingService && (
+            <div className="space-y-4 pt-4">
+              <div>
+                <Label>Nome do Serviço</Label>
+                <Input
+                  value={editingService.title}
+                  onChange={(e) => setEditingService({ ...editingService, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Descrição</Label>
+                <Textarea
+                  value={editingService.description ?? ""}
+                  onChange={(e) =>
+                    setEditingService({ ...editingService, description: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Preço (R$)</Label>
+                  <Input
+                    type="number"
+                    value={editingService.price}
+                    onChange={(e) =>
+                      setEditingService({
+                        ...editingService,
+                        price: Number.parseFloat(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Duração (min)</Label>
+                  <Input
+                    type="number"
+                    value={editingService.duration_minutes}
+                    onChange={(e) =>
+                      setEditingService({
+                        ...editingService,
+                        duration_minutes: Number.parseInt(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Características (uma por linha)</Label>
+                <Textarea
+                  value={Array.isArray(editingService.features) ? editingService.features.join('\n') : editingService.features ?? ""}
+                  onChange={(e) => setEditingService({ ...editingService, features: e.target.value })}
+                  placeholder={"- Característica 1\n- Característica 2"}
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label>Ícone</Label>
+                <Select
+                  value={editingService.icon}
+                  onValueChange={(value) => setEditingService({ ...editingService, icon: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um ícone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(iconTranslations).map(([iconKey, iconLabel]) => (
+                      <SelectItem key={iconKey} value={iconKey}>
+                        {iconLabel}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="edit-service-active"
+                  checked={editingService.is_active}
+                  onCheckedChange={(checked) =>
+                    setEditingService({ ...editingService, is_active: checked })
+                  }
+                />
+                <Label htmlFor="edit-service-active">Serviço ativo</Label>
+              </div>
+              <Button
+                onClick={() => updateService(editingService.id, editingService)}
+                disabled={loading}
+                className="w-full bg-turquoise hover:bg-turquoise/90"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar Alterações
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Service Dialog */}
+      <Dialog open={isDeleteServiceDialogOpen} onOpenChange={setIsDeleteServiceDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Você tem certeza que deseja excluir o serviço "{serviceToDelete?.title}"? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          {serviceToDelete && (
+            <div className="space-y-4 pt-4">
+              <Button
+                onClick={() => deleteService(serviceToDelete.id)}
+                disabled={loading}
+                variant="destructive"
+                className="w-full"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sim, excluir serviço
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => setIsDeleteServiceDialogOpen(false)}>
+                Cancelar
               </Button>
             </div>
           )}
