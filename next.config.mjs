@@ -12,10 +12,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "ribewmawyclwlknxsbah.supabase.co",
         port: "",
-            pathname: "/**",
+        pathname: "/**",
       },
     ],
   },
+  // Removemos experimental.serverActions e hostname, pois causam warnings e não são mais necessários
 }
 
-export default nextConfig
+export default nextConfig;

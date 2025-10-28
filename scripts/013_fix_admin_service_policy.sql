@@ -13,9 +13,9 @@ DROP POLICY IF EXISTS "services_select_active" ON public.services;
 -- 3. Cria a política correta para leitura pública de serviços ativos.
 -- Esta política permite que QUALQUER um (role 'public') leia os serviços que estão com 'is_active = true'.
 CREATE POLICY "Anyone can view active services" ON public.services
-FOR SELECT
-TO public
-USING (is_active = true);
+  FOR SELECT
+  TO public
+  USING (is_active = true);
 
 -- A política de administrador para gerenciar todos os serviços (criada no script 008)
 -- continua válida e não precisa ser alterada.

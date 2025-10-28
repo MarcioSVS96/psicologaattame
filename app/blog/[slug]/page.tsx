@@ -102,8 +102,8 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
               <Image
                 src={post.image_url}
                 alt={post.image_alt || post.title}
-                fill
-                className="object-cover"
+                fill // A classe 'object-cover' já está sendo aplicada via className
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1120px"
                 priority
               />
             </div>
@@ -111,8 +111,37 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
 
           {/* O 'prose' é uma classe que aplica estilos de tipografia para textos longos. Adicionei estilos básicos em globals.css */}
           {/* A classe 'whitespace-pre-wrap' preserva as quebras de linha e faz o wrap do texto */}
-          <div className="prose prose-lg max-w-full text-gray-800 leading-relaxed whitespace-pre-wrap break-words">
-            {post.content}
+          <div className="prose prose-lg max-w-full text-gray-800 leading-relaxed break-words">
+            {(() => {
+              // Verifica se o conteúdo é uma string antes de tentar dividir
+              if (typeof post.content !== 'string') {
+                // Se não for string (pode ser null, undefined ou json), renderiza um aviso ou nada
+                return <p>Conteúdo do post em formato inválido.</p>;
+              }
+              const paragraphs = post.content.split(/\n\s*\n/); // Divide por parágrafos (linhas em branco)
+              const contentImages = (post.content_images as any[] || []);
+              let imageIndex = 0;
+              const elements = [];
+
+              for (let i = 0; i < paragraphs.length; i++) {
+                elements.push(
+                  <p key={`p-${i}`} className="whitespace-pre-wrap">{paragraphs[i]}</p>
+                );
+
+                // Insere uma imagem a cada 5 parágrafos, se houver imagens disponíveis
+                if ((i + 1) % 5 === 0 && imageIndex < contentImages.length) {
+                  const img = contentImages[imageIndex];
+                  elements.push(
+                    <div key={`img-${imageIndex}`} className="relative h-64 md:h-96 w-full rounded-lg overflow-hidden my-8 shadow-lg">
+                      <Image src={img.url} alt={img.alt || post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 896px" />
+                    </div>
+                  );
+                  imageIndex++;
+                }
+              }
+
+              return elements;
+            })()}
           </div>
         </article>
 
@@ -141,7 +170,12 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
               {popularPosts.map((p) => (
                 <div key={p.slug} className="flex flex-col overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <div className="relative h-56 w-full">
-                    <Image src={p.image_url || '/placeholder.jpg'} alt={p.image_alt || p.title} fill className="object-cover" />
+                    <Image
+                      src={p.image_url || "/placeholder.jpg"}
+                      alt={p.image_alt || p.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover" />
                   </div>
                   <div className="p-6 flex flex-col flex-grow">
                     <p className="text-sm text-gray-500">{p.published_at ? format(new Date(p.published_at), "dd 'de' MMMM, yyyy", { locale: ptBR }) : ""}</p>
