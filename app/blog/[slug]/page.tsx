@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Image from "next/image"
+import DOMPurify from 'isomorphic-dompurify'
 import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -125,38 +126,14 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
 
           {/* O 'prose' é uma classe que aplica estilos de tipografia para textos longos. Adicionei estilos básicos em globals.css */}
           {/* A classe 'whitespace-pre-wrap' preserva as quebras de linha e faz o wrap do texto */}
-          <div className="prose prose-lg max-w-full text-gray-800 leading-relaxed break-words">
-            {(() => {
-              // Verifica se o conteúdo é uma string antes de tentar dividir
-              if (typeof post.content !== 'string') {
-                // Se não for string (pode ser null, undefined ou json), renderiza um aviso ou nada
-                return <p>Conteúdo do post em formato inválido.</p>;
-              }
-              const paragraphs = post.content.split(/\n\s*\n/); // Divide por parágrafos (linhas em branco)
-              const contentImages = (post.content_images as any[] || []);
-              let imageIndex = 0;
-              const elements = [];
-
-              for (let i = 0; i < paragraphs.length; i++) {
-                elements.push(
-                  <p key={`p-${i}`} className="whitespace-pre-wrap">{paragraphs[i]}</p>
-                );
-
-                // Insere uma imagem a cada 5 parágrafos, se houver imagens disponíveis
-                if ((i + 1) % 5 === 0 && imageIndex < contentImages.length) {
-                  const img = contentImages[imageIndex];
-                  elements.push(
-                    <div key={`img-${imageIndex}`} className="relative h-64 md:h-96 w-full rounded-lg overflow-hidden my-8 shadow-lg">
-                      <Image src={img.url} alt={img.alt || post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 896px" />
-                    </div>
-                  );
-                  imageIndex++;
-                }
-              }
-
-              return elements;
-            })()}
-          </div>
+          <div
+            className="prose prose-lg max-w-full text-gray-800 leading-relaxed break-words"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(post.content || '', {
+                ADD_TAGS: ['iframe'], 
+              }),
+            }}
+          />
         </article>
 
         {/* Seção de Banner/CTA */}

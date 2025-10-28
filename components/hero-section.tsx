@@ -12,13 +12,13 @@ export function HeroSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-2 gap-12 items-center py-8">
           {/* Content */}
-          <div className="space-y-8">
+          <div className="space-y-8 text-center lg:text-left">
             <div className="space-y-4">
-              <h1 className="text-4xl lg:text-6xl font-serif font-bold text-balance leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-serif font-bold text-balance leading-tight">
                 Cuidando da sua <span style={{ color: "#40e0d0" }}>saúde mental</span> com acolhimento e
                 profissionalismo
               </h1>
-              <p className="text-xl text-gray-200 text-pretty leading-relaxed">
+              <p className="text-lg sm:text-xl text-gray-200 text-pretty leading-relaxed">
                 Foco em psicoterapia individual, voltada para quem busca autoconhecimento, equilíbrio emocional e estratégias práticas para lidar com os desafios do dia a dia.
               </p>
             </div>
@@ -41,7 +41,7 @@ export function HeroSection() {
             </div>
 
             {/* Trust indicators */}
-            <div className="flex items-center space-x-8">
+            <div className="flex flex-col items-center lg:items-start space-y-4 lg:flex-row lg:space-y-0 lg:space-x-8">
               <div className="flex items-center space-x-2">
                 <Shield className="h-6 w-6" style={{ color: "#40e0d0" }} />
                 <span className="text-sm">CRP 02/28474</span>
