@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const supabase = await createClient()
   const { data: post } = await supabase
     .from("posts")
-    .select("title, summary")
+    .select("title, summary, image_url, author_name") // Adicionei image_url e author_name
     .eq("slug", params.slug)
     .single()
 
@@ -29,6 +29,20 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: `${post.title} | Blog Beatriz Attame`,
     description: post.summary,
+    author: [{ name: post.author_name }],
+    openGraph: {
+      title: post.title,
+      description: post.summary,
+      url: `https://www.beatrizattame.com/blog/${params.slug}`, // URL canônica do post
+      type: "article",
+      images: post.image_url ? [{ url: post.image_url }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.summary,
+      images: post.image_url ? [post.image_url] : [],
+    },
   }
 }
 
