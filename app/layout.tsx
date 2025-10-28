@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: "Beatriz Attame Psicologia",
     images: [
       {
-        url: "/about.png", 
+        url: "/rs.png", 
         width: 1200,
         height: 630,
         alt: "Beatriz Attame - Psicóloga",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Beatriz Attame - Psicóloga",
     description: "Atendimento humanizado e personalizado para promover seu bem-estar emocional.",
-    images: ["/about.png"], 
+    images: ["/rs.png"], 
   },
 }
 
