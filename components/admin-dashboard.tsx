@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState, useEffect, useMemo, useCallback } from "react"
+import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -22,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog"
 import {
-  Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History, Trash2,
+  Calendar, Users, MessageSquare, LogOut, Clock, Phone, Mail, Eye, Edit, Plus, Loader2, Search, History, Trash2, GripVertical,
   BookOpen,
   Heart,
   Brain,
@@ -37,9 +38,9 @@ import { format, isToday, isAfter, parseISO, startOfDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import type { User } from "@supabase/supabase-js"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner"
+import { toast, Toaster } from "sonner"
 import * as z from "zod"
-import { upsertPost, deletePost } from "@/app/admin/blog/[postId]/actions"
+import { upsertPost, deletePost, deleteContentImage } from "@/app/admin/blog/[postId]/actions"
 
 interface AdminDashboardProps {
   appointments: any[]
@@ -48,7 +49,7 @@ interface AdminDashboardProps {
   services: any[]
   posts: any[]
   user: User
-  profile: any
+  profile: any,
 }
 
 export function AdminDashboard({
@@ -57,7 +58,7 @@ export function AdminDashboard({
   messages: initialMessages,
   services: initialServices,
   posts: initialPosts,
-  user,
+  user, 
   profile,
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview")
@@ -123,7 +124,12 @@ export function AdminDashboard({
     summary: z.string().min(10, "O resumo deve ter pelo menos 10 caracteres."),
     content: z.string().min(10, "O conteúdo é obrigatório."),
     image: z.instanceof(File).optional().nullable(),
-    image_alt: z.string().optional().nullable(),
+    image_alt: z.string().optional().nullable().default(""),
+    content_images: z.array(z.instanceof(File)).optional().default([]),
+    existing_content_images: z.array(z.object({
+      url: z.string(),
+      alt: z.string().optional().nullable().default(""),
+    })).optional().default([]),
     status: z.enum(["draft", "published", "archived"]),
   })
 
@@ -135,7 +141,9 @@ export function AdminDashboard({
       summary: "",
       content: "",
       image_alt: "",
-      status: "draft",
+      status: "draft" as const,
+      content_images: [],
+      existing_content_images: [],
     },
   })
 
@@ -148,11 +156,13 @@ export function AdminDashboard({
         summary: editingPost?.summary || "",
         content: editingPost?.content || "",
         image_alt: editingPost?.image_alt || "",
-        status: editingPost?.status || "draft",
+        status: editingPost?.status || "draft" as const,
         image: null,
+        content_images: [], // Para novos uploads
+        existing_content_images: editingPost?.content_images || [], // Para gerenciar existentes
       });
     }
-  }, [editingPost, isPostDialogOpen, postForm]); // Adicionado postForm às dependências
+  }, [editingPost, isPostDialogOpen, postForm]);
 
   // Availability Management
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
@@ -465,6 +475,11 @@ export function AdminDashboard({
     if (values.image_alt) {
       formData.append("image_alt", values.image_alt)
     }
+    // Adiciona as imagens de conteúdo
+    formData.append("existing_content_images", JSON.stringify(values.existing_content_images || []))
+    if (values.content_images) {
+      values.content_images.forEach(file => formData.append("content_images[]", file))
+    }
 
     // A action `upsertPost` agora retorna um objeto com o resultado
     const result = await upsertPost(formData)
@@ -473,7 +488,11 @@ export function AdminDashboard({
       toast.success(result.message)
       // A action não redireciona mais, então fechamos o diálogo e atualizamos o estado
       setIsPostDialogOpen(false)
-      setPosts(result.posts || []) // A action precisa retornar a lista atualizada
+      if (result.posts) {
+        setPosts(result.posts)
+      } else {
+        // Fallback para recarregar a página se a lista não for retornada
+      }
     } else {
       toast.error(result.message)
     }
@@ -494,6 +513,35 @@ export function AdminDashboard({
     }
     setLoading(false)
   }
+
+  const handleContentImageDelete = async (imageUrl: string) => {
+    if (!editingPost?.id) return;
+    setLoading(true);
+    const result = await deleteContentImage(editingPost.id, imageUrl);
+    if (result.success) {
+      toast.success(result.message);
+      // Atualiza o estado do formulário e o estado local do post em edição
+      const updatedImages = result.updatedImages || [];
+      postForm.setValue('existing_content_images', updatedImages);
+      setEditingPost((prev: any) => ({
+        ...prev,
+        content_images: updatedImages,
+      }));
+    } else {
+      toast.error(result.message);
+    }
+    setLoading(false);
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const items = Array.from(postForm.getValues('existing_content_images'));
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    postForm.setValue('existing_content_images', items);
+  };
 
   // Group messages by email
   const groupedMessages = useMemo(() => {
@@ -1557,7 +1605,7 @@ export function AdminDashboard({
                       </FormLabel>
                       <FormControl>
                         <Input
-                          {...fieldProps}
+                          {...fieldProps} value={undefined}
                           type="file"
                           accept="image/*"
                           onChange={(event) => onChange(event.target.files && event.target.files[0])}
@@ -1582,6 +1630,82 @@ export function AdminDashboard({
                 />
               </div>
             </div>
+
+            {/* Imagens de Conteúdo */}
+            <div className="space-y-2 rounded-md border p-4">
+              <Label>Imagens do Conteúdo</Label>
+              <p className="text-sm text-muted-foreground">
+                Estas imagens serão inseridas a cada 5 parágrafos no corpo do texto. Arraste para reordenar.
+              </p>
+              {/* Exibe imagens existentes */}
+              <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="content-images-droppable">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4 pt-2">
+                      {postForm.watch('existing_content_images').map((img, index) => (
+                        <Draggable key={img.url} draggableId={img.url} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className="flex items-center gap-2 p-2 border rounded-md bg-background"
+                            >
+                              <div {...provided.dragHandleProps} className="cursor-grab p-1">
+                                <GripVertical className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                              <div className="relative w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
+                                <PostImagePreview src={img.url} alt={img.alt || `Imagem de conteúdo ${index + 1}`} />
+                              </div>
+                              <div className="flex-grow space-y-1">
+                                <FormField
+                                  control={postForm.control}
+                                  name={`existing_content_images.${index}.alt`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">Texto Alternativo</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="Descreva a imagem" className="h-8" />
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleContentImageDelete(img.url)} disabled={loading}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+              ){"}"}
+              {/* Campo para adicionar novas imagens */}
+              <FormField
+                control={postForm.control}
+                name="content_images"
+                render={({ field: { value, onChange, ...fieldProps } }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">
+                      Adicionar novas imagens
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...fieldProps}
+                        value={undefined} // Garante que o valor não seja controlado
+                        type="file" accept="image/*" multiple
+                        onChange={(event) => onChange(event.target.files ? Array.from(event.target.files) : [])}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <DialogClose asChild>
               <Button type="button" variant="outline">Cancelar</Button>
             </DialogClose>

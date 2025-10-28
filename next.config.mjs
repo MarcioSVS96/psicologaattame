@@ -12,17 +12,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "ribewmawyclwlknxsbah.supabase.co",
         port: "",
-            pathname: "/**",
+        pathname: "/**",
       },
     ],
   },
-  // Adicione esta configuração para resolver o erro de URL inválida com Server Actions
-  experimental: {
-    serverActions: true,
-  },
-  // Adicione esta configuração para resolver o erro de URL inválida
-  // com Server Actions em desenvolvimento.
-  hostname: 'localhost',
+  // Removemos experimental.serverActions e hostname, pois causam warnings e não são mais necessários
 }
 
-export default nextConfig
+export default nextConfig;

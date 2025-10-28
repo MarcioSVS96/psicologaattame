@@ -182,7 +182,13 @@ export function PostForm({ post }: PostFormProps) {
               <CardContent className="space-y-4">
                 {post?.image_url && (
                   <div className="relative w-full h-40 rounded-md overflow-hidden">
-                    <Image src={post.image_url} alt={post.image_alt || "Imagem de destaque"} layout="fill" objectFit="cover" />
+                    <Image
+                      src={post.image_url}
+                      alt={post.image_alt || "Imagem de destaque"}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 33vw"
+                      style={{ objectFit: "cover" }}
+                    />
                   </div>
                 )}
                 <FormField
