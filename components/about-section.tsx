@@ -33,7 +33,7 @@ export function AboutSection() {
           <div className="relative">
             <img
               src="/about.jpg"
-              alt="Consultório de Psicologia"
+              alt="Psicóloga Beatriz Attame"
               className="rounded-2xl shadow-2xl object-cover w-full h-auto max-h-[85vh]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-navy/20 to-transparent rounded-2xl"></div>
