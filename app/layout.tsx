@@ -37,15 +37,6 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     type: "website",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Beatriz Attame - Psicóloga",
-    description:
-      "Atendimento humanizado e personalizado para promover seu bem-estar emocional.",
-    images: ["https://www.psicologabrasil.com/rs.png"], // URL absoluta atualizada
-    site: "@seuusuario", // Opcional, colocar usuário do Twitter
-    creator: "@seuusuario",
-  },
 };
 
 export default function RootLayout({
