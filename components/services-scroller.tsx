@@ -62,22 +62,12 @@ export function ServicesScroller({ services, isLoggedIn }: ServicesScrollerProps
   }
 
   return (
-    <div className="relative w-full px-8 md:px-12">
-      {canScrollLeft && (
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 rounded-full h-12 w-12 bg-white/80 hover:bg-white shadow-lg"
-          onClick={() => scroll("left")}
-        >
-          <ChevronLeft className="h-6 w-6 text-navy" />
-        </Button>
-      )}
-      <div ref={scrollContainerRef} className="horizontal-scroll-container gap-8 py-5">
+    <div className="w-full lg:relative">
+      <div ref={scrollContainerRef} className="horizontal-scroll-container gap-8 py-5 pl-4 sm:pl-6 lg:pl-8">
         {services.map((service) => {
           const IconComponent = service.icon ? serviceIcons[service.icon] : User
           return (
-            <div key={service.id}>
+            <div key={service.id} className="w-[80vw] sm:w-80 flex-shrink-0">
               <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col rounded-lg">
                 <CardContent className="p-8 text-center space-y-4 flex flex-col flex-grow">
                   <div className="bg-turquoise/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
@@ -110,15 +100,32 @@ export function ServicesScroller({ services, isLoggedIn }: ServicesScrollerProps
           )
         })}
       </div>
-      {canScrollRight && (
+
+      {/* Botões de Navegação - Visíveis apenas se houver conteúdo para rolar */}
+      {(canScrollLeft || canScrollRight) && (
+        <div className="mt-4 flex justify-center items-center gap-4 lg:mt-0">
+          {/* Botão Esquerdo */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full h-12 w-12 bg-white/80 hover:bg-white shadow-lg lg:absolute lg:left-2 lg:top-1/2 lg:-translate-y-1/2 z-10 disabled:opacity-0 disabled:cursor-default transition-opacity"
+            onClick={() => scroll("left")}
+            disabled={!canScrollLeft}
+          >
+            <ChevronLeft className="h-6 w-6 text-navy" />
+          </Button>
+
+        {/* Botão Direito */}
         <Button
           variant="outline"
           size="icon"
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 rounded-full h-12 w-12 bg-white/80 hover:bg-white shadow-lg"
+            className="rounded-full h-12 w-12 bg-white/80 hover:bg-white shadow-lg lg:absolute lg:right-2 lg:top-1/2 lg:-translate-y-1/2 z-10 disabled:opacity-0 disabled:cursor-default transition-opacity"
           onClick={() => scroll("right")}
+            disabled={!canScrollRight}
         >
           <ChevronRight className="h-6 w-6 text-navy" />
         </Button>
+        </div>
       )}
     </div>
   )
