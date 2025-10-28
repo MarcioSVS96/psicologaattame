@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Image from "next/image"
-import DOMPurify from 'isomorphic-dompurify'
 import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -9,6 +8,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ArrowLeft, ArrowRight, Calendar, User } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { SafeHTML } from "@/components/safe-html"
 import { BannerSection } from "@/components/banner-section"
 
 // Gera metadados dinâmicos (título e descrição) para a página, o que é ótimo para SEO.
@@ -126,14 +126,7 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
 
           {/* O 'prose' é uma classe que aplica estilos de tipografia para textos longos. Adicionei estilos básicos em globals.css */}
           {/* A classe 'whitespace-pre-wrap' preserva as quebras de linha e faz o wrap do texto */}
-          <div
-            className="prose prose-lg max-w-full text-gray-800 leading-relaxed break-words"
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(post.content || '', {
-                ADD_TAGS: ['iframe'], 
-              }),
-            }}
-          />
+          <SafeHTML htmlContent={post.content} />
         </article>
 
         {/* Seção de Banner/CTA */}
