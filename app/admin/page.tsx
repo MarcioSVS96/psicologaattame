@@ -23,6 +23,11 @@ export default async function AdminPage() {
   // Get user profile
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
+  // Se o perfil não for encontrado, é um estado inesperado. Redirecionar para o login.
+  if (!profile) {
+    redirect("/auth/login?redirect=/admin")
+  }
+
   // Get dashboard data
   const [appointmentsResult, patientsResult, messagesResult, servicesResult, postsResult] = await Promise.all([
     supabase
