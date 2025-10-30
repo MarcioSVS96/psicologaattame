@@ -71,8 +71,6 @@ export default async function DashboardPage() {
               <Link href="/" className="text-2xl font-serif font-bold text-navy">
                 Beatriz Attame
               </Link>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-600">Meu Painel</span>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Olá, {profile?.full_name || user.email}</span>
