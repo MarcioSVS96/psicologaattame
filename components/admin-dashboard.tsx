@@ -680,20 +680,20 @@ export function AdminDashboard({
     <div className="min-h-screen bg-warm-gray">
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="text-2xl font-serif font-bold text-navy">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Link href="/" className="text-xl font-serif font-bold text-navy sm:text-2xl">
                 Beatriz Attame
               </Link>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-600">Painel Administrativo</span>
+              <span className="hidden text-gray-400 sm:inline">|</span>
+              <span className="hidden text-gray-600 sm:inline">Painel Administrativo</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Olá, {profile?.full_name || user.email}</span>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="hidden text-sm text-gray-600 md:inline">Olá, {profile?.full_name || user.email}</span>
               <form action="/auth/signout" method="post">
                 <Button variant="ghost" size="sm" type="submit">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sair
+                  <LogOut className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Sair</span>
                 </Button>
               </form>
             </div>
