@@ -1665,7 +1665,7 @@ export function AdminDashboard({
                                     <FormItem>
                                       <FormLabel className="text-xs">Texto Alternativo</FormLabel>
                                       <FormControl>
-                                        <Input {...field} placeholder="Descreva a imagem" className="h-8" />
+                                        <Input {...field} value={field.value ?? ""} placeholder="Descreva a imagem" className="h-8" />
                                       </FormControl>
                                     </FormItem>
                                   )}
