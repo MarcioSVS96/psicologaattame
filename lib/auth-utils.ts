@@ -10,11 +10,13 @@ export async function isAdmin(): Promise<boolean> {
 
     if (!user) return false
 
-    // A verificação do admin é feita com base na variável de ambiente.
-    // Isso evita expor o e-mail no código e facilita a manutenção.
-    const adminEmail = process.env.ADMIN_EMAIL
-    if (!adminEmail) return false // Garante que a variável está configurada
-    return user.email === adminEmail
+    // A verificação de admin deve ser baseada no perfil do usuário no banco de dados.
+    // Esta é a fonte de verdade única e mais segura.
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+
+    if (profileError || !profile) return false
+
+    return profile.role === "admin"
   } catch (error) {
     console.error("Erro ao verificar admin:", error)
     return false

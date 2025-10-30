@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { isAdmin } from "@/lib/auth-utils"
+// A função `isAdmin` agora é a única fonte de verdade para verificar o acesso de administrador.
+import { isAdmin, getUserProfile } from "@/lib/auth-utils"
 import { AdminDashboard } from "@/components/admin-dashboard"
 
 export default async function AdminPage() {
@@ -15,16 +16,17 @@ export default async function AdminPage() {
     redirect("/auth/login?redirect=/admin")
   }
 
+  // Esta função agora verifica o 'role' do perfil internamente.
   const userIsAdmin = await isAdmin()
   if (!userIsAdmin) {
     redirect("/dashboard")
   }
 
-  // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  // O perfil completo é necessário para o dashboard, então o buscamos aqui.
+  const profile = await getUserProfile()
 
-  // Se o perfil não for encontrado, é um estado inesperado. Redirecionar para o login.
   if (!profile) {
+    // Se o usuário é admin mas não tem perfil, é um estado inconsistente.
     redirect("/auth/login?redirect=/admin")
   }
 
