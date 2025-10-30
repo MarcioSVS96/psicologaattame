@@ -56,7 +56,7 @@ export function EnvironmentSetup() {
         <AlertTitle>Acesso Administrativo</AlertTitle>
         <AlertDescription className="mt-2">
           <p>
-            <strong>Email admin:</strong> beatriz.attame@gmail.com
+            O e-mail do administrador é definido pela variável de ambiente `ADMIN_EMAIL`.
           </p>
           <p>
             Apenas este email terá acesso ao painel administrativo. Outros usuários serão automaticamente cadastrados

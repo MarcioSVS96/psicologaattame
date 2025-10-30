@@ -10,8 +10,11 @@ export async function isAdmin(): Promise<boolean> {
 
     if (!user) return false
 
-    // Apenas Beatriz pode ser admin
-    return user.email === "beatriz.attame@gmail.com"
+    // A verificação do admin é feita com base na variável de ambiente.
+    // Isso evita expor o e-mail no código e facilita a manutenção.
+    const adminEmail = process.env.ADMIN_EMAIL
+    if (!adminEmail) return false // Garante que a variável está configurada
+    return user.email === adminEmail
   } catch (error) {
     console.error("Erro ao verificar admin:", error)
     return false

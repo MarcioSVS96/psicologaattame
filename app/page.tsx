@@ -18,8 +18,8 @@ export default function HomePage() {
       <EducationSection />
       <BannerSection
         imageUrl="/banner.png"
-        title="Acompanhamentos psicoterapeuticos."
-        subtitle="100% Online"
+        title="Agende sua consulta com psicóloga online"
+        subtitle="Sigilo garantido | Atendimento via vídeo-chamada | Flexível à sua rotina"
         buttonText="Saiba Mais"
         buttonLink="/services"
       />
@@ -27,8 +27,8 @@ export default function HomePage() {
       <AboutSection />
       <BannerSection
         imageUrl="/banner.png"
-        title="Acompanhamentos psicoterapeuticos."
-        subtitle="100% Online"
+        title="Sente ansiedade ou cansaço emocional?"
+        subtitle="Terapia online com psicóloga pode te ajudar, agende sua sessão agora."
         buttonText="Saiba Mais"
         buttonLink="/services"
       />

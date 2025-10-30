@@ -14,7 +14,7 @@ BEGIN
   RETURN EXISTS (
     SELECT 1 FROM auth.users 
     WHERE id = user_id 
-    AND email = 'beatriz.attame@gmail.com'
+    AND email = '{{ .Env.ADMIN_EMAIL }}'
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -30,7 +30,7 @@ BEGIN
     new.email,
     COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
     CASE 
-      WHEN new.email = 'beatriz.attame@gmail.com' THEN 'admin'
+      WHEN new.email = '{{ .Env.ADMIN_EMAIL }}' THEN 'admin'
       ELSE 'patient'
     END
   )
