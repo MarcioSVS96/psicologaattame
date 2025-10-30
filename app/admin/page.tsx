@@ -47,7 +47,7 @@ export default async function AdminPage() {
     supabase.from("services").select("*").order("title"),
     supabase
       .from("posts")
-      .select("id, title, author_name, created_at, status, summary, content, image_url, image_alt")
+      .select("id, title, author_name, created_at, status, summary, content, image_url, image_alt, view_count")
       .order("created_at", { ascending: false }),
   ])
 
