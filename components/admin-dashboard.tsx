@@ -41,6 +41,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast, Toaster } from "sonner"
 import * as z from "zod"
 import { upsertPost, deletePost, deleteContentImage } from "@/app/admin/blog/[postId]/actions"
+import { PostImagePreview } from "./post-image-preview"
 
 interface AdminDashboardProps {
   appointments: any[]
@@ -1682,7 +1683,7 @@ export function AdminDashboard({
                   )}
                 </Droppable>
               </DragDropContext>
-              ){"}"}
+              
               {/* Campo para adicionar novas imagens */}
               <FormField
                 control={postForm.control}
