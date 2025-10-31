@@ -40,6 +40,7 @@ import type { User } from "@supabase/supabase-js"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toast, Toaster } from "sonner"
 import * as z from "zod"
+import { signOut } from "@/app/auth/actions"
 import { upsertPost, deletePost, deleteContentImage } from "@/app/admin/blog/[postId]/actions"
 import { PostImagePreview } from "./post-image-preview"
 
@@ -688,9 +689,9 @@ export function AdminDashboard({
               <span className="hidden text-gray-400 sm:inline">|</span>
               <span className="hidden text-gray-600 sm:inline">Painel Administrativo</span>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4"> 
               <span className="hidden text-sm text-gray-600 md:inline">Olá, {profile?.full_name || user.email}</span>
-              <form action="/auth/signout" method="post">
+              <form action={signOut}>
                 <Button variant="ghost" size="sm" type="submit">
                   <LogOut className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">Sair</span>
