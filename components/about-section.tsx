@@ -44,8 +44,7 @@ export function AboutSection() {
             <div className="space-y-4">
               <h2 className="text-4xl font-serif font-bold text-navy text-balance">Sobre mim</h2>
               <p className="text-lg text-gray-700 text-pretty leading-relaxed">
-                 Há mais de 5 anos dedico-me ao cuidado da saúde mental, ajudando pessoas a
-                superarem desafios emocionais e desenvolverem uma vida mais plena e equilibrada.
+                 Meu trabalho tem como base o acolhimento, oferecendo um espaço de escuta e respeito. Atuo com Terapia Cognitivo-Comportamental (TCC) baseada em evidências, promovendo intervenções eficazes voltadas ao autoconhecimento, ao fortalecimento psicológico e a mudanças positivas e duradouras.
               </p>
             </div>
 
