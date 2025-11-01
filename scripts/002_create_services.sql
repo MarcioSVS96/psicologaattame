@@ -34,7 +34,7 @@ create policy "services_admin_all"
 
 -- Insert default services
 insert into public.services (title, description, duration_minutes, price) values
-('Consulta Individual', 'Sessão de terapia individual personalizada para suas necessidades específicas.', 60, 150.00),
-('Terapia de Casal', 'Sessões focadas em melhorar a comunicação e relacionamento do casal.', 90, 200.00),
+('Consulta Individual', 'Sessão de psicoterapia individual personalizada para suas necessidades específicas.', 60, 150.00),
+('Psicoterapia de Casal', 'Sessões focadas em melhorar a comunicação e relacionamento do casal.', 90, 200.00),
 ('Avaliação Psicológica', 'Avaliação completa para diagnóstico e planejamento terapêutico.', 120, 300.00),
-('Terapia Familiar', 'Sessões que envolvem toda a família para resolver conflitos e melhorar a dinâmica familiar.', 90, 180.00);
+('Psicoterapia Familiar', 'Sessões que envolvem toda a família para resolver conflitos e melhorar a dinâmica familiar.', 90, 180.00);

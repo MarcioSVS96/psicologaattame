@@ -18,11 +18,11 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Beatriz Attame - Psicóloga | Terapia Individual e de Casal",
+  title: "Beatriz Attame - Psicóloga | Psicoterapia Individual e de Casal",
   description:
-    "Psicóloga especializada em terapia individual, de casal e familiar. Atendimento humanizado e personalizado para promover seu bem-estar emocional.",
+    "Psicóloga especializada em psicoterapia individual, de casal e familiar. Atendimento humanizado e personalizado para promover seu bem-estar emocional.",
   openGraph: {
-    title: "Beatriz Attame - Psicóloga | Terapia Individual e de Casal",
+    title: "Beatriz Attame - Psicóloga | Psicoterapia Individual e de Casal",
     description:
       "Atendimento humanizado e personalizado para promover seu bem-estar emocional.",
     url: "https://www.psicologabrasil.com",

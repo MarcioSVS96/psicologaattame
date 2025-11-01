@@ -1195,7 +1195,7 @@ export function AdminDashboard({
                           <Input
                             value={newService.title}
                             onChange={(e) => setNewService({ ...newService, title: e.target.value })}
-                            placeholder="Ex: Terapia Individual"
+                            placeholder="Ex: Psicoterapia Individual"
                           />
                         </div>
                         <div>

@@ -28,7 +28,7 @@ export default function HomePage() {
       <BannerSection
         imageUrl="/banner.png"
         title="Sente ansiedade ou cansaço emocional?"
-        subtitle="Terapia online com psicóloga pode te ajudar, agende sua sessão agora."
+        subtitle="Psicoterapia online com psicóloga pode te ajudar, agende sua sessão agora."
         buttonText="Saiba Mais"
         buttonLink="/services"
       />

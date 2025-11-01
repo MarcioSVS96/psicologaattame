@@ -11,7 +11,7 @@ export function EducationSection() {
     },
     {
       icon: BookOpen,
-      title: "Pós graduando em Terapia Cognitivo-Comportamental - TCC",
+      title: "Pós graduando em Psicoterapia Cognitivo-Comportamental - TCC",
       institution: "FACULDADE FAVENI",
       year: "2025",
     },
