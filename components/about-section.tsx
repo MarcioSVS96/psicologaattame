@@ -6,22 +6,24 @@ export function AboutSection() {
     {
       icon: Heart,
       title: "Acolhimento",
-      description: "Ofereço um ambiente seguro e livre de julgamentos para você se expressar.",
+      description: "Ofereço um ambiente seguro, ético e livre de julgamentos, no qual você pode se expressar com liberdade e autenticidade.",
     },
     {
       icon: Brain,
       title: "Abordagem Científica",
-      description: "Utilizo técnicas baseadas em evidências científicas para resultados efetivos.",
+      description: "O compromisso com a ciência é essencial para promover mudanças reais e sustentáveis.",
     },
     {
       icon: Users,
       title: "Atendimento Personalizado",
-      description: "Cada pessoa é única, por isso adapto o tratamento às suas necessidades específicas.",
+      description: "Adapto o processo psicoterapêutico às suas necessidades específicas, respeitando seu ritmo, suas particularidades emocionais e sua subjetividade.",
+
     },
     {
       icon: Target,
       title: "Foco em Resultados",
-      description: "Trabalho com objetivos claros para promover mudanças positivas em sua vida.",
+      description: "Trabalho com objetivos terapêuticos claros, orientados para o desenvolvimento pessoal e o bem-estar emocional. ",
+
     },
   ]
 
