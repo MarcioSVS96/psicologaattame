@@ -26,7 +26,7 @@ export function BannerSection({
       {/* Overlay para melhorar a legibilidade do texto */}
       <div className="absolute inset-0 bg-navy/60" />
 
-      <div className="relative z-10 p-4 space-y-6 max-w-4xl mx-auto">
+      <div className="relative z-10 p-4 space-y-6 max-w-4xl ml-auto">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-balance">{title}</h2>
         <p className="text-lg md:text-xl text-pretty">{subtitle}</p>
         <Button asChild size="lg" className="bg-turquoise hover:bg-turquoise/90 text-white font-bold text-lg px-8 py-6">
