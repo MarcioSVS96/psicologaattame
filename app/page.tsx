@@ -17,7 +17,7 @@ export default function HomePage() {
       <ServicesSection />
       <EducationSection />
       <BannerSection
-        imageUrl="/banner.png"
+        imageUrl="/banner.webp"
         title="Agende sua consulta com psicóloga online"
         subtitle="Sigilo garantido | Atendimento via vídeo-chamada | Flexível à sua rotina"
         buttonText="Saiba Mais"
@@ -26,7 +26,7 @@ export default function HomePage() {
       <LatestPosts />
       <AboutSection />
       <BannerSection
-        imageUrl="/banner.png"
+        imageUrl="/banner.webp"
         title="Sente ansiedade ou cansaço emocional?"
         subtitle="Psicoterapia online com psicóloga pode te ajudar, agende sua sessão agora."
         buttonText="Agende sua Sessão"

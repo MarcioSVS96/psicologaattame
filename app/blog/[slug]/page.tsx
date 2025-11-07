@@ -132,7 +132,7 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
         {/* Seção de Banner/CTA */}
         <section className="mt-16">
           <BannerSection
-            imageUrl="/banner.png"
+            imageUrl="/banner.webp"
             title="Acompanhamentos psicoterapêuticos."
             subtitle="100% Online"
             buttonText="Saiba Mais"
