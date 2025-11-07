@@ -136,7 +136,7 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
             title="Acompanhamentos psicoterapêuticos."
             subtitle="100% Online"
             buttonText="Saiba Mais"
-            buttonLink="/services"
+            buttonLink="https://wa.me/5581985712073"
           />
         </section>
 

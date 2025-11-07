@@ -21,7 +21,7 @@ export default function HomePage() {
         title="Agende sua consulta com psicóloga online"
         subtitle="Sigilo garantido | Atendimento via vídeo-chamada | Flexível à sua rotina"
         buttonText="Saiba Mais"
-        buttonLink="/services"
+        buttonLink="https://wa.me/5581985712073"
       />
       <LatestPosts />
       <AboutSection />
@@ -29,8 +29,8 @@ export default function HomePage() {
         imageUrl="/banner.png"
         title="Sente ansiedade ou cansaço emocional?"
         subtitle="Psicoterapia online com psicóloga pode te ajudar, agende sua sessão agora."
-        buttonText="Saiba Mais"
-        buttonLink="/services"
+        buttonText="Agende sua Sessão"
+        buttonLink="https://wa.me/5581985712073"
       />
       <ContactSection />
       <Footer />
