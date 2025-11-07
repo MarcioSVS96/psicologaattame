@@ -2,8 +2,9 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, User, Settings, LogOut } from "lucide-react"
+import { Calendar, User, Settings } from "lucide-react"
 import Link from "next/link"
+import { LogoutButton } from "./logout-button"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -34,12 +35,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Olá, {profile?.full_name || user.email}</span>
-              <form action="/auth/signout" method="post">
-                <Button variant="ghost" size="sm" type="submit">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sair
-                </Button>
-              </form>
+              <LogoutButton />
             </div>
           </div>
         </div>
