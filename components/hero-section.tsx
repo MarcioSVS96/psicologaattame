@@ -64,7 +64,7 @@ export function HeroSection() {
               style={{ backgroundColor: "rgba(64, 224, 208, 0.2)", borderColor: "rgba(64, 224, 208, 0.3)" }}
             >
               <img
-                src="/profile.png"
+                src="/profile.webp"
                 alt="Beatriz Attame - Psicóloga"
                 className="rounded-2xl object-cover w-full h-full"
               />
