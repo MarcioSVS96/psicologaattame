@@ -88,21 +88,6 @@ export default function RootLayout({
             gtag('config', 'G-GTHZ9BL3PR');
           `}
         </Script>
-        {/*
-          Otimização de Carregamento de CSS:
-          Este script carrega as folhas de estilo de forma assíncrona para evitar o bloqueio de renderização.
-          1. Encontra todos os links de stylesheet.
-          2. Define 'media' como 'print', fazendo o navegador baixar o CSS em baixa prioridade.
-          3. Após o carregamento (onload), restaura 'media' para 'all' para aplicar os estilos.
-        */}
-        <Script id="async-css-loader" strategy="afterInteractive">
-          {`
-            document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-              link.onload = () => { link.media = 'all'; };
-              link.media = 'print';
-            });
-          `}
-        </Script>
       </body>
     </html>
   );
