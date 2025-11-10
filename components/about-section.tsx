@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Heart, Brain, Users, Target } from "lucide-react"
+import Image from "next/image"
 
 export function AboutSection() {
   const values = [
@@ -32,11 +33,13 @@ export function AboutSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Image */}
-          <div className="relative">
-            <img
+          <div className="relative aspect-[4/5] w-full max-w-md mx-auto">
+            <Image
               src="/about.webp"
               alt="Psicóloga Beatriz Attame"
-              className="rounded-2xl shadow-2xl object-cover w-full h-auto max-h-[85vh]"
+              fill
+              sizes="(max-width: 1024px) 90vw, 450px"
+              className="rounded-2xl shadow-2xl object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-navy/20 to-transparent rounded-2xl"></div>
           </div>
