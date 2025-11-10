@@ -17,7 +17,7 @@ export default async function ProfilePage() {
     redirect("/auth/login")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("id, full_name, phone").eq("id", user.id).single()
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
   if (!profile) {
     // Este caso não deve acontecer se um perfil for criado no cadastro.
@@ -37,7 +37,8 @@ export default async function ProfilePage() {
           <h1 className="text-3xl font-bold text-navy">Atualizar Perfil</h1>
           <p className="text-gray-600 mt-1">Mantenha suas informações pessoais atualizadas.</p>
         </div>
-        <Card className="border-0 shadow-lg"><CardContent className="p-6 sm:p-8">
+        <Card className="border-0 shadow-lg">
+          <CardContent className="p-6 sm:p-8">
             <ProfileForm profile={profile} />
           </CardContent>
         </Card>
@@ -45,4 +46,3 @@ export default async function ProfilePage() {
     </div>
   )
 }
-
