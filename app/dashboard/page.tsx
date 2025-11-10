@@ -6,6 +6,7 @@ import { Calendar, LogOut, History } from "lucide-react"
 import Link from "next/link"
 import { format, isAfter } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { signOut } from "../auth/actions"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -74,7 +75,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Olá, {profile?.full_name || user.email}</span>
-              <form action="/auth/signout" method="post">
+              <form action={signOut}>
                 <Button variant="ghost" size="sm" type="submit">
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair
