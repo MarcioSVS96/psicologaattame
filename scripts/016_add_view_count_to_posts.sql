@@ -10,6 +10,7 @@ ADD COLUMN IF NOT EXISTS view_count integer DEFAULT 0 NOT NULL;
 -- poderiam resultar em apenas um incremento.
 CREATE OR REPLACE FUNCTION public.increment_post_view(post_id uuid)
 RETURNS void AS $$
+  SET search_path = public;
   UPDATE public.posts
   SET view_count = view_count + 1
   WHERE id = post_id;

@@ -10,6 +10,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;
 -- A verificação é feita pelo email, que é a fonte de verdade.
 CREATE OR REPLACE FUNCTION public.is_admin_user(user_id uuid)
 RETURNS boolean AS $$
+  SET search_path = public;
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM auth.users 
@@ -22,6 +23,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 3. Atualiza a função de criação de perfil para definir a role 'admin' no momento do registro.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
+  SET search_path = public;
 BEGIN
   -- Insere o novo usuário na tabela de perfis, definindo a role correta.
   INSERT INTO public.profiles (id, email, full_name, role)
