@@ -87,7 +87,7 @@ export default async function MyAppointmentsPage() {
             <CardContent>
               <p className="text-gray-600 mb-4">Você ainda não agendou sua primeira consulta.</p>
               <Button asChild className="bg-turquoise hover:bg-turquoise/90 text-white">
-                <Link href="/appointment-booking">Agendar Agora</Link>
+                <Link href="/book-appointment">Agendar Agora</Link>
               </Button>
             </CardContent>
           </Card>
