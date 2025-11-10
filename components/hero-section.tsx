@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Heart, Shield, Users } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 
 export function HeroSection() {
   return (
@@ -63,13 +62,11 @@ export function HeroSection() {
             <div
               className="aspect-square rounded-2xl backdrop-blur-sm border flex items-center justify-center"
               style={{ backgroundColor: "rgba(64, 224, 208, 0.2)", borderColor: "rgba(64, 224, 208, 0.3)" }}
-            > 
-              <Image
+            >
+              <img
                 src="/profile.webp"
                 alt="Beatriz Attame - Psicóloga"
                 className="rounded-2xl object-cover w-full h-full"
-                priority={true}
-                fill
               />
             </div>
           </div>
