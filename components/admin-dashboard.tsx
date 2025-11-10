@@ -1105,6 +1105,7 @@ export function AdminDashboard({
                                 setEditingPost(post)
                                 setIsPostDialogOpen(true)
                               }}
+                              aria-label={`Editar post ${post.title}`}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -1672,7 +1673,15 @@ export function AdminDashboard({
                                   )}
                                 />
                               </div>
-                              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleContentImageDelete(img.url)} disabled={loading}>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleContentImageDelete(img.url)}
+                                disabled={loading}
+                                aria-label={`Excluir imagem de conteúdo ${index + 1}`}
+                              >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
                             </div>
@@ -1847,6 +1856,7 @@ export function AdminDashboard({
                             setMessageToDelete(message)
                             setIsDeleteMessageDialogOpen(true)
                           }}
+                          aria-label={`Excluir mensagem de ${message.name}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

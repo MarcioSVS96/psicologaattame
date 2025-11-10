@@ -111,6 +111,7 @@ export function ServicesScroller({ services, isLoggedIn }: ServicesScrollerProps
             className="rounded-full h-12 w-12 bg-white/80 hover:bg-white shadow-lg lg:absolute lg:left-2 lg:top-1/2 lg:-translate-y-1/2 z-10 disabled:opacity-0 disabled:cursor-default transition-opacity"
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
+            aria-label="Rolar para a esquerda"
           >
             <ChevronLeft className="h-6 w-6 text-navy" />
           </Button>
@@ -122,6 +123,7 @@ export function ServicesScroller({ services, isLoggedIn }: ServicesScrollerProps
             className="rounded-full h-12 w-12 bg-white/80 hover:bg-white shadow-lg lg:absolute lg:right-2 lg:top-1/2 lg:-translate-y-1/2 z-10 disabled:opacity-0 disabled:cursor-default transition-opacity"
           onClick={() => scroll("right")}
             disabled={!canScrollRight}
+            aria-label="Rolar para a direita"
         >
           <ChevronRight className="h-6 w-6 text-navy" />
         </Button>
