@@ -34,6 +34,18 @@ export default function SignUpPage() {
     setIsLoading(true)
     setError(null)
 
+    if (!formData.fullName.trim() || !formData.phone.trim()) {
+      setError("Todos os campos são obrigatórios.")
+      setIsLoading(false)
+      return
+    }
+
+    if (formData.phone.length !== 10 && formData.phone.length !== 11) {
+      setError("O número de telefone deve ter 10 ou 11 dígitos, incluindo o DDD.")
+      setIsLoading(false)
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("As senhas não coincidem")
       setIsLoading(false)
@@ -80,7 +92,13 @@ export default function SignUpPage() {
   }
 
   const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    if (field === "phone") {
+      // Permite apenas números no campo de telefone
+      const numericValue = value.replace(/\D/g, "")
+      setFormData(prev => ({ ...prev, [field]: numericValue }))
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }))
+    }
   }
 
   return (
@@ -136,6 +154,7 @@ export default function SignUpPage() {
                   id="phone"
                   type="tel"
                   placeholder="(11) 91111-1111"
+                  required
                   value={formData.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
                 />
