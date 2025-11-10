@@ -88,17 +88,6 @@ export default function RootLayout({
             gtag('config', 'G-GTHZ9BL3PR');
           `}
         </Script>
-        {/* Script para carregamento assíncrono de CSS */}
-        <Script id="async-css" strategy="afterInteractive">
-          {`
-            document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-              if (!link.media || link.media === 'all') {
-                link.media = 'print';
-                link.onload = () => { link.media = 'all'; };
-              }
-            });
-          `}
-        </Script>
       </body>
     </html>
   );
