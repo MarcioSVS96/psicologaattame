@@ -4,10 +4,12 @@ import { isAdmin as checkIsAdmin } from "@/lib/auth-utils" // Importando a funç
 
 // GET: Busca os horários de uma data específica
 export async function GET(request: Request) {
-  if (!(await checkIsAdmin())) {
+  const supabase = await createClient()
+  const isAdmin = await checkIsAdmin()
+  if (!isAdmin) {
     return NextResponse.json({ message: "Acesso negado." }, { status: 403 })
   }
-
+  
   const { searchParams } = new URL(request.url)
   const date = searchParams.get("date")
 
@@ -15,7 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "Data é obrigatória" }, { status: 400 })
   }
 
-  const { data, error } = await (await createClient()).from("availabilities").select("slots").eq("date", date).single()
+  const { data, error } = await supabase.from("availabilities").select("slots").eq("date", date).single()
 
   if (error && error.code !== "PGRST116") {
     // PGRST116 é o código para "nenhuma linha encontrada", o que é normal
@@ -28,7 +30,9 @@ export async function GET(request: Request) {
 
 // POST: Cria ou atualiza os horários de uma data
 export async function POST(request: Request) {
-  if (!(await checkIsAdmin())) {
+  const supabase = await createClient()
+  const isAdmin = await checkIsAdmin()
+  if (!isAdmin) {
     return NextResponse.json({ message: "Acesso negado." }, { status: 403 })
   }
 
@@ -39,7 +43,7 @@ export async function POST(request: Request) {
   }
 
   // `upsert` cria uma nova linha se a data não existir, ou atualiza se já existir.
-  const { data, error } = await (await createClient())
+  const { data, error } = await supabase
     .from("availabilities")
     .upsert({ date, slots }, { onConflict: "date" })
     .select()
