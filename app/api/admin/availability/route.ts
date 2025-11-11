@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { isAdmin as checkIsAdmin } from "@/lib/auth-utils" // Importando a função centralizada
+import { isAdmin as checkIsAdmin } from "@/lib/auth-utils"
 
 // GET: Busca os horários de uma data específica
 export async function GET(request: Request) {

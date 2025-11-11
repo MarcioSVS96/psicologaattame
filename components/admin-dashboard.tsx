@@ -102,6 +102,27 @@ export function AdminDashboard({
   const [editingSettings, setEditingSettings] = useState(generalSettings)
 
   const [editingPost, setEditingPost] = useState<any>(null)
+  
+  // Efeito para carregar as configurações de horário da API
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch("/api/admin/settings")
+        if (response.ok) {
+          const { settings } = await response.json()
+          if (Object.keys(settings).length > 0) {
+            const mergedSettings = { ...generalSettings, ...settings }
+            setGeneralSettings(mergedSettings)
+            setEditingSettings(mergedSettings)
+          }
+        }
+      } catch (error) {
+        console.error("Falha ao carregar as configurações de horário.")
+      }
+    }
+    fetchSettings()
+  }, [])
+
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false)
   const [postToDelete, setPostToDelete] = useState<any>(null)
   const [isDeletePostDialogOpen, setIsDeletePostDialogOpen] = useState(false)
@@ -400,6 +421,27 @@ export function AdminDashboard({
       setLoading(false)
     }
   }, [])
+
+  const handleSaveSettings = useCallback(async () => {
+    setLoading(true)
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingSettings),
+      })
+
+      if (response.ok) {
+        setGeneralSettings(editingSettings)
+        setIsSettingsDialogOpen(false)
+        toast.success("Horários de funcionamento atualizados com sucesso!")
+      }
+    } catch (error) {
+      toast.error("Falha ao salvar as configurações.")
+    } finally {
+      setLoading(false)
+    }
+  }, [editingSettings])
 
   // Fetch availability for a selected day
   useEffect(() => {
@@ -1382,12 +1424,7 @@ export function AdminDashboard({
                           </div>
                         ))}
                         <Button
-                          onClick={() => {
-                            setGeneralSettings(editingSettings)
-                            setIsSettingsDialogOpen(false)
-                          }}
-                          className="w-full bg-turquoise hover:bg-turquoise/90"
-                        >
+                          onClick={handleSaveSettings} disabled={loading} className="w-full bg-turquoise hover:bg-turquoise/90">
                           Salvar Alterações
                         </Button>
                       </div>
