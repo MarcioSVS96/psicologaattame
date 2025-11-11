@@ -1179,7 +1179,7 @@ export function AdminDashboard({
             <h2 className="text-2xl font-bold text-navy">Configurações</h2>
 
             <div className="grid lg:grid-cols-2 gap-8">
-              <Card>
+              <Card className="w-full">
                 <CardHeader>
                   <CardTitle className="text-navy">Serviços Oferecidos</CardTitle>
                 </CardHeader>
@@ -1192,7 +1192,7 @@ export function AdminDashboard({
                           {service.duration_minutes} min - R$ {service.price}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-wrap items-center gap-2 justify-end">
                         <Badge variant={service.is_active ? "default" : "secondary"}>
                           {service.is_active ? "Ativo" : "Inativo"}
                         </Badge>
@@ -1317,7 +1317,7 @@ export function AdminDashboard({
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="w-full">
                 <CardHeader>
                   <CardTitle className="text-navy">Configurações Gerais</CardTitle>
                 </CardHeader>
@@ -1384,7 +1384,7 @@ export function AdminDashboard({
                                 }
                               </Label>
                               <Switch
-                                id={`switch-${day}`}
+                                id={`switch-${day}-active`}
                                 checked={editingSettings[day].is_active}
                                 onCheckedChange={(checked) =>
                                   setEditingSettings((prev) => ({
@@ -1394,7 +1394,7 @@ export function AdminDashboard({
                                 }
                               />
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Input
                                 type="time"
                                 step="1800" // 30-minute steps
