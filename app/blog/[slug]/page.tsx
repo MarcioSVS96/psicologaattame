@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, Calendar, User } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { SafeHTML } from "@/components/safe-html"
 import { BannerSection } from "@/components/banner-section"
+import { PostViewTracker } from "@/components/post-view-tracker"
 
 // Gera metadados dinâmicos (título e descrição) para a página, o que é ótimo para SEO.
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -62,16 +63,6 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
     notFound()
   }
 
-  // Incrementa o contador de visualizações do post de forma assíncrona
-  // Não bloqueia a renderização da página
-  if (post.id) {
-    supabase.rpc('increment_post_view', { post_id: post.id }).then(({ error }) => {
-      if (error) {
-        console.error('Error incrementing post view count:', error.message);
-      }
-    });
-  }
-
   // Busca os 3 posts mais populares (excluindo o atual)
   const { data: popularPosts } = await supabase
     .from('posts')
@@ -84,6 +75,7 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
   return (
     <div className="bg-white min-h-screen flex flex-col">
       <Header />
+      <PostViewTracker postId={post.id} />
       <main className="flex-grow pt-24 pb-16">
         <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           {/* Seção do botão de voltar com fundo para destaque */}
