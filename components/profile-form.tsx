@@ -212,11 +212,11 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             <Label htmlFor="address">Endereço</Label>
             <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="sexualOrientation">Orientação Sexual</Label>
             <Input id="sexualOrientation" value={sexualOrientation} onChange={(e) => setSexualOrientation(e.target.value)} />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <div className="flex items-center space-x-2">
               <Checkbox id="isEmployed" checked={isEmployed} onCheckedChange={(checked) => setIsEmployed(Boolean(checked))} />
               <Label htmlFor="isEmployed">Trabalha?</Label>
@@ -228,7 +228,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
               </div>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <div className="flex items-center space-x-2">
               <Checkbox id="hasChildren" checked={hasChildren} onCheckedChange={(checked) => setHasChildren(Boolean(checked))} />
               <Label htmlFor="hasChildren">Tem filhos?</Label>
@@ -240,7 +240,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
               </div>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <div className="flex items-center space-x-2">
               <Checkbox id="hasReligion" checked={hasReligion} onCheckedChange={(checked) => setHasReligion(Boolean(checked))} />
               <Label htmlFor="hasReligion">Tem religião?</Label>
