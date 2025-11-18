@@ -13,7 +13,7 @@ export function SafeHTML({ htmlContent }: SafeHTMLProps) {
 
   return (
     <div
-      className="prose prose-lg max-w-full text-gray-800 leading-relaxed break-words"
+      className="prose prose-lg max-w-full text-gray-800 leading-relaxed break-words whitespace-pre-wrap"
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />
   )
