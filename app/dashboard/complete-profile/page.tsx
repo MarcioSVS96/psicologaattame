@@ -186,10 +186,6 @@ export default function CompleteProfilePage() {
             <section>
               <h3 className="text-lg font-semibold text-navy border-b pb-2">Dados Pessoais</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Data de Nascimento</Label>
-                  <Input id="dateOfBirth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} required />
-                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="gender">Gênero</Label>
@@ -228,12 +224,12 @@ export default function CompleteProfilePage() {
                   <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="sexualOrientation">Orientação Sexual</Label>
                   <Input id="sexualOrientation" value={sexualOrientation} onChange={(e) => setSexualOrientation(e.target.value)} />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox id="isEmployed" checked={isEmployed} onCheckedChange={(checked) => setIsEmployed(Boolean(checked))} />
                     <Label htmlFor="isEmployed">Trabalha?</Label>
@@ -246,7 +242,7 @@ export default function CompleteProfilePage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox id="hasChildren" checked={hasChildren} onCheckedChange={(checked) => setHasChildren(Boolean(checked))} />
                     <Label htmlFor="hasChildren">Tem filhos?</Label>
@@ -259,7 +255,7 @@ export default function CompleteProfilePage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox id="hasReligion" checked={hasReligion} onCheckedChange={(checked) => setHasReligion(Boolean(checked))} />
                     <Label htmlFor="hasReligion">Tem religião?</Label>

@@ -32,12 +32,19 @@ export default async function DashboardPage() {
     redirect("/admin")
   }
 
-  // CRUCIAL: Verifica se o perfil está completo. Se não, redireciona para a página de completar o cadastro.
-  // Usamos a data de nascimento como um indicador de que o formulário detalhado foi preenchido.
-  const isProfileComplete = !!profile.date_of_birth
+  // Defina os campos que indicam se o perfil está completo
+  const requiredFields = [
+    profile.gender,
+    profile.emergency_contact_name,
+    profile.main_complaint,
+  ]
+
+  // Se algum desses estiver vazio ou nulo → redireciona para completar cadastro
+  const isProfileComplete = requiredFields.every(field => field && field !== "")
   if (!isProfileComplete) {
     redirect("/dashboard/complete-profile")
   }
+
 
   // Busca os agendamentos para o dashboard
   const { data: appointments } = await supabase

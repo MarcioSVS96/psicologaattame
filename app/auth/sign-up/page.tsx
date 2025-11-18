@@ -21,6 +21,7 @@ export default function SignUpPage() {
     confirmPassword: "",
     fullName: "",
     phone: "",
+    date_of_birth: "", 
   })
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -34,7 +35,7 @@ export default function SignUpPage() {
     setIsLoading(true)
     setError(null)
 
-    if (!formData.fullName.trim() || !formData.phone.trim()) {
+    if (!formData.fullName.trim() || !formData.phone.trim() || !formData.date_of_birth) {
       setError("Todos os campos são obrigatórios.")
       setIsLoading(false)
       return
@@ -71,7 +72,7 @@ export default function SignUpPage() {
         full_name: formData.fullName,
         phone: formData.phone,
         consent_given: consentGiven,
-        role: "patient",
+        date_of_birth: formData.date_of_birth,
       }
 
       const { error } = await supabase.auth.signUp({
@@ -133,6 +134,18 @@ export default function SignUpPage() {
                   required
                   value={formData.fullName}
                   onChange={(e) => handleChange("fullName", e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="date_of_birth">Data de Nascimento</Label>
+                <Input
+                  id="date_of_birth"
+                  type="date"
+                  required
+                  value={formData.date_of_birth}
+                  onChange={(e) => handleChange("date_of_birth", e.target.value)}
+                  className="text-gray-500" // Melhora a visibilidade do placeholder/valor
                 />
               </div>
 
