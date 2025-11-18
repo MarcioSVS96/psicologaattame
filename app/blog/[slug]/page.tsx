@@ -105,13 +105,15 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
           </header>
 
           {post.image_url && (
-            <div className="relative h-64 md:h-96 w-full rounded-lg overflow-hidden mb-8 shadow-lg">
+            <div className="relative h-64 md:h-96 w-full rounded-lg overflow-hidden mb-8">
               <Image
                 src={post.image_url}
                 alt={post.image_alt || post.title}
+                objectFit="contain"
                 fill // A classe 'object-cover' já está sendo aplicada via className
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1120px"
                 priority
+                className="img-auto-center object-contain"
               />
             </div>
           )}
