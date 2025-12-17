@@ -1,30 +1,28 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Heart, Brain, Users, Target } from "lucide-react"
+import { Award, BookOpen, GraduationCap, Users } from "lucide-react"
 import Image from "next/image"
 
 export function AboutSection() {
   const values = [
     {
-      icon: Heart,
-      title: "Acolhimento",
-      description: "Ofereço um ambiente seguro, ético e livre de julgamentos, no qual você pode se expressar com liberdade e autenticidade.",
+      icon: GraduationCap,
+      title: "Graduação em Psicologia",
+      description: "Faculdade de Ciências Humanas de Olinda - FACHO (2023)",
     },
     {
-      icon: Brain,
-      title: "Abordagem Científica",
-      description: "O compromisso com a ciência é essencial para promover mudanças reais e sustentáveis.",
+      icon: BookOpen,
+      title: "Pós graduando em Psicoterapia Cognitivo-Comportamental - TCC",
+      description: "FACULDADE FAVENI (2025)",
     },
     {
       icon: Users,
-      title: "Atendimento Personalizado",
-      description: "Adapto o processo psicoterapêutico às suas necessidades específicas, respeitando seu ritmo, suas particularidades emocionais e sua subjetividade.",
-
+      title: "Pós graduando em NEUROPSICOLOGIA",
+      description: "Faculdade FAVENI (2025)",
     },
     {
-      icon: Target,
-      title: "Foco em Resultados",
-      description: "Trabalho com objetivos terapêuticos claros, orientados para o desenvolvimento pessoal e o bem-estar emocional. ",
-
+      icon: Award,
+      title: "Especializada em Análise do Comportamento Aplicada",
+      description: "FACULDADE ESUDA (2025)",
     },
   ]
 
