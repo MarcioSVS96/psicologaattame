@@ -125,6 +125,31 @@ export default function CompleteProfilePage() {
     setIsLoading(true)
     setError(null)
 
+    const validationErrors = []
+    if (!gender) validationErrors.push("Gênero")
+    if (!maritalStatus) validationErrors.push("Estado Civil")
+    if (!address) validationErrors.push("Endereço")
+    if (!sexualOrientation) validationErrors.push("Orientação Sexual")
+    if (!emergencyContactName) validationErrors.push("Nome do Contato de Emergência")
+    if (!emergencyContactPhone) validationErrors.push("Telefone do Contato de Emergência")
+
+    if (isEmployed && !profession) validationErrors.push("Profissão")
+    if (hasChildren && !childrenCount) validationErrors.push("Quantidade de filhos")
+    if (usesMedication && !medicationDetails) validationErrors.push("Detalhes da medicação")
+    if (hasReligion && !religionName) validationErrors.push("Nome da religião")
+
+    if (!noMainComplaint && !mainComplaint) validationErrors.push("Queixa Principal")
+    if (!noPreviousTreatments && !previousTreatments) validationErrors.push("Histórico de Tratamentos Anteriores")
+    if (!noMedicalConditions && !medicalConditions) validationErrors.push("Condições Médicas Relevantes")
+    if (!noPreviousDiagnosis && !previousDiagnosis) validationErrors.push("Diagnóstico Anterior")
+    if (!noMedicalReferrals && !medicalReferrals) validationErrors.push("Referências Médicas")
+
+    if (validationErrors.length > 0) {
+      setError(`Por favor, preencha os seguintes campos obrigatórios: ${validationErrors.join(", ")}.`)
+      setIsLoading(false)
+      return
+    }
+
     try {
       const profileData = {
         date_of_birth: dateOfBirth,
