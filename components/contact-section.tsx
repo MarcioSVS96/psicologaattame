@@ -119,7 +119,7 @@ export function ContactSection() {
               <CardTitle className="text-2xl font-bold text-navy">Envie uma Mensagem</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} action="/api/contact" method="POST" className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome completo</Label>

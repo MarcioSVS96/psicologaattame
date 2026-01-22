@@ -123,6 +123,27 @@ export function AdminDashboard({
     fetchSettings()
   }, [])
 
+  // Efeito para buscar mensagens periodicamente (Polling)
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const response = await fetch("/api/admin/messages");
+        if (response.ok) {
+          const { messages: newMessages } = await response.json();
+          setMessages(newMessages);
+        }
+      } catch (error) {
+        console.error("Falha ao buscar novas mensagens:", error);
+      }
+    };
+
+    // Busca as mensagens a cada 10 segundos
+    const intervalId = setInterval(fetchMessages, 10000);
+
+    // Limpa o intervalo quando o componente é desmontado
+    return () => clearInterval(intervalId);
+  }, []);
+
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false)
   const [postToDelete, setPostToDelete] = useState<any>(null)
   const [isDeletePostDialogOpen, setIsDeletePostDialogOpen] = useState(false)
