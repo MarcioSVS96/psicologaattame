@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
   const { title, description, price, duration_minutes, is_active } = await request.json()
 
-  if (!title || !price || !duration_minutes) {
+  if (!title  || !duration_minutes) {
     return NextResponse.json({ message: "Campos obrigatórios faltando" }, { status: 400 })
   }
 

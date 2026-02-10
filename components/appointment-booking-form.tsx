@@ -13,6 +13,7 @@ import { format, addDays, isSameDay, isAfter, isBefore, startOfDay } from "date-
 import { ptBR } from "date-fns/locale"
 
 interface Service {
+  is_social_price: boolean
   id: string
   title: string
   description: string
@@ -195,7 +196,11 @@ export function AppointmentBookingForm({ services, userId }: AppointmentBookingF
                       </div>
                       <div className="flex items-center space-x-1">
                         <DollarSign className="h-4 w-4" />
-                        <span>R$ {service.price.toFixed(2)}</span>
+                        <span>
+                          {service.is_social_price || service.price === null || typeof service.price === "undefined"
+                            ? "Valor social"
+                            : `R$ ${Number(service.price).toFixed(2)}`}
+                        </span>
                       </div>
                     </div>
                   </div>

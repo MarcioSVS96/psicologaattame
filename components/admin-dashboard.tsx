@@ -154,11 +154,12 @@ export function AdminDashboard({
   const [newService, setNewService] = useState({
     title: "",
     description: "",
-    features: "", // Adicionado para características
+    features: "", 
     price: "",
     duration_minutes: "",
     is_active: true,
-    icon: "User", // Adicionado para ícone, inicializado com um valor padrão
+    is_social_price: false,
+    icon: "User", 
   })  
 
   // Schema de validação para o formulário do blog
@@ -318,7 +319,8 @@ export function AdminDashboard({
           description: newService.description,
           // Converte a string de características (uma por linha) em um array
           features: newService.features.split('\n').filter(f => f.trim() !== ''),
-          price: Number.parseFloat(newService.price),
+          price: newService.is_social_price ? null : Number.parseFloat(newService.price),
+          is_social_price: newService.is_social_price,
           duration_minutes: Number.parseInt(newService.duration_minutes),
           is_active: newService.is_active,
           icon: newService.icon,
@@ -328,7 +330,7 @@ export function AdminDashboard({
       if (response.ok) {
         const { service } = await response.json()
         setServices((prev) => [...prev, service])
-        setNewService({ title: "", description: "", features: "", price: "", duration_minutes: "", is_active: true, icon: "User" })
+        setNewService({ title: "", description: "", features: "", price: "", duration_minutes: "", is_active: true, is_social_price: false, icon: "User" })
       } else {
         const errorData = await response.json()
         console.error("Failed to create service:", errorData.message)
@@ -1262,6 +1264,7 @@ export function AdminDashboard({
                             placeholder="Ex: Psicoterapia Individual"
                           />
                         </div>
+
                         <div>
                           <Label>Descrição</Label>
                           <Textarea
@@ -1270,6 +1273,7 @@ export function AdminDashboard({
                             placeholder="Descrição do serviço..."
                           />
                         </div>
+
                         <div>
                           <Label>Características (uma por linha)</Label>
                           <Textarea
@@ -1278,16 +1282,38 @@ export function AdminDashboard({
                             placeholder={"- Característica 1\n- Característica 2"}
                           />
                         </div>
+
                         <div className="grid grid-cols-2 gap-4">
-                          <div>
+                          <div className="space-y-2">
                             <Label>Preço (R$)</Label>
+
                             <Input
-                              type="number"
-                              value={newService.price}
-                              onChange={(e) => setNewService({ ...newService, price: e.target.value })}
-                              placeholder="150.00"
+                              type={newService.is_social_price ? "text" : "number"}
+                              value={newService.is_social_price ? "Valor social" : newService.price}
+                              onChange={(e) => {
+                                if (newService.is_social_price) return
+                                setNewService({ ...newService, price: e.target.value })
+                              }}
+                              placeholder={newService.is_social_price ? "Valor social" : "150.00"}
+                              readOnly={newService.is_social_price}
+                              disabled={newService.is_social_price}
                             />
+
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={newService.is_social_price}
+                                onCheckedChange={(checked) =>
+                                  setNewService((prev) => ({
+                                    ...prev,
+                                    is_social_price: checked,
+                                    price: checked ? "" : prev.price,
+                                  }))
+                                }
+                              />
+                              <Label className="cursor-pointer select-none">Preço social</Label>
+                            </div>
                           </div>
+
                           <div>
                             <Label>Duração (min)</Label>
                             <Input
@@ -1298,12 +1324,10 @@ export function AdminDashboard({
                             />
                           </div>
                         </div>
+
                         <div>
                           <Label>Ícone</Label>
-                          <Select
-                            value={newService.icon}
-                            onValueChange={(value) => setNewService({ ...newService, icon: value })}
-                          >
+                          <Select value={newService.icon} onValueChange={(value) => setNewService({ ...newService, icon: value })}>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione um ícone" />
                             </SelectTrigger>
@@ -1316,6 +1340,7 @@ export function AdminDashboard({
                             </SelectContent>
                           </Select>
                         </div>
+
                         <div className="flex items-center space-x-2">
                           <input
                             type="checkbox"
@@ -1324,9 +1349,15 @@ export function AdminDashboard({
                           />
                           <Label>Serviço ativo</Label>
                         </div>
+
                         <Button
                           onClick={createService}
-                          disabled={loading || !newService.title || !newService.price || !newService.duration_minutes}
+                          disabled={
+                            loading ||
+                            !newService.title ||
+                            !newService.duration_minutes ||
+                            (!newService.is_social_price && !newService.price)
+                          }
                           className="w-full bg-turquoise hover:bg-turquoise/90"
                         >
                           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
