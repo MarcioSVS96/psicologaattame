@@ -15,13 +15,6 @@ export function TeaHeroSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="grid lg:grid-cols-2 gap-10 items-center">
           <div className="space-y-6">
-            <div
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm"
-              style={{ background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.18)" }}
-            >
-              <Sparkles className="h-4 w-4" />
-              Página dedicada ao TEA
-            </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold leading-tight">
               Informação clara, acolhimento e próximos passos sobre{" "}
@@ -77,41 +70,6 @@ export function TeaHeroSection() {
               >
                 <p className="text-sm font-semibold">CRP 02/28474</p>
                 <p className="text-xs text-white/80">Atendimento online.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div
-              className="rounded-2xl p-6 sm:p-8"
-              style={{
-                background: "rgba(255,255,255,0.10)",
-                border: "1px solid rgba(255,255,255,0.18)",
-              }}
-            >
-              <p className="text-sm text-white/80 mb-2">Começo prático:</p>
-              <p className="text-xl sm:text-2xl font-semibold leading-snug">
-                “O objetivo aqui é reduzir confusão, organizar informação e transformar em ação possível.”
-              </p>
-
-              <div className="mt-6 grid gap-3">
-                {[
-                  "O que observar no dia a dia",
-                  "Temas mais comuns (sensibilidade, rotina, comunicação)",
-                  "Perguntas que ajudam na triagem",
-                  "Como funciona o primeiro contato",
-                ].map((t) => (
-                  <div
-                    key={t}
-                    className="rounded-xl px-4 py-3 text-sm"
-                    style={{
-                      background: "rgba(255,255,255,0.10)",
-                      border: "1px solid rgba(255,255,255,0.14)",
-                    }}
-                  >
-                    {t}
-                  </div>
-                ))}
               </div>
             </div>
           </div>

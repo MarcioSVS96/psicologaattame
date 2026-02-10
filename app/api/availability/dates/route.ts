@@ -3,25 +3,32 @@ import { NextResponse } from "next/server"
 
 export async function GET() {
   const supabase = await createClient()
-  const today = new Date().toISOString().split("T")[0] // Formato YYYY-MM-DD
+  const today = new Date().toISOString().split("T")[0] // YYYY-MM-DD
 
   try {
-    // Busca todas as datas futuras que têm horários definidos
+    // Busca datas futuras com slots
     const { data, error } = await supabase
       .from("availabilities")
-      .select("date")
-      .gte("date", today) // Apenas datas futuras
-      .not("slots", "eq", "[]") // Apenas datas que não estão vazias
+      .select("date, slots")
+      .gte("date", today)
 
     if (error) {
       throw error
     }
 
-    const dates = data.map((item) => item.date)
+    // Filtra manualmente apenas datas que realmente têm horários
+    const dates = (data || [])
+      .filter(
+        (row) => Array.isArray(row.slots) && row.slots.length > 0
+      )
+      .map((row) => row.date)
+
     return NextResponse.json({ dates })
   } catch (error: any) {
     console.error("Erro ao buscar datas disponíveis:", error)
-    return NextResponse.json({ message: error.message || "Erro interno do servidor" }, { status: 500 })
+    return NextResponse.json(
+      { message: error.message || "Erro interno do servidor" },
+      { status: 500 }
+    )
   }
 }
-
