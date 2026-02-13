@@ -48,7 +48,7 @@ export function Header() {
     { name: "Sobre", href: isHomePage ? "#about" : "/#about" },
     { name: "Contato", href: isHomePage ? "#contact" : "/#contact" },
     { name: "Blog", href: "/blog" },
-    { name: "TEA", href: "/tea" },
+    // { name: "TEA", href: "/tea" },
   ]
 
   return (
