@@ -1,15 +1,16 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Heart } from "lucide-react"
 
 export default function LoginPage() {
@@ -17,7 +18,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Respeita redirect vindo do middleware/server (ex: /auth/login?redirect=/book-appointment)
+  const redirectTo = searchParams.get("redirect") || "/dashboard"
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,8 +36,17 @@ export default function LoginPage() {
         email,
         password,
       })
+
       if (error) throw error
-      router.push("/dashboard")
+
+      /**
+       * Importante no App Router:
+       * - replace evita voltar para /login no "voltar"
+       * - refresh garante que rotas server/middleware enxerguem os cookies da sessão imediatamente
+       *   (corrige o comportamento de ter que "logar duas vezes" ao entrar em rotas protegidas)
+       */
+      router.replace(redirectTo)
+      router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Ocorreu um erro durante o login")
     } finally {
@@ -43,10 +58,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-navy to-navy-light flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center space-x-2 text-white hover:text-turquoise transition-colors"
-          >
+          <Link href="/" className="inline-flex items-center space-x-2 text-white hover:text-turquoise transition-colors">
             <Heart className="h-8 w-8" />
             <span className="text-2xl font-serif font-bold">Beatriz Attame</span>
           </Link>
@@ -57,6 +69,7 @@ export default function LoginPage() {
             <CardTitle className="text-2xl font-bold text-navy">Entrar na sua conta</CardTitle>
             <CardDescription>Digite suas credenciais para acessar o sistema</CardDescription>
           </CardHeader>
+
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
@@ -71,6 +84,7 @@ export default function LoginPage() {
                   className="h-12"
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
                 <Input
@@ -83,11 +97,13 @@ export default function LoginPage() {
                   className="h-12"
                 />
               </div>
+
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
+
               <Button
                 type="submit"
                 className="w-full h-12 bg-turquoise hover:bg-turquoise/90 text-white font-semibold"
@@ -104,6 +120,7 @@ export default function LoginPage() {
                   Cadastre-se aqui
                 </Link>
               </p>
+
               <Link href="/" className="text-sm text-gray-500 hover:text-navy transition-colors">
                 ← Voltar ao site
               </Link>
