@@ -8,6 +8,32 @@ import Link from "next/link"
 import { format, isAfter, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
+type AppointmentRow = {
+  id: string
+  appointment_date: string
+  status: string | null
+  services:
+    | {
+        title: string
+        duration_minutes: number
+      }
+    | {
+        title: string
+        duration_minutes: number
+      }[]
+    | null
+}
+
+type NormalizedAppointment = {
+  id: string
+  appointment_date: string
+  status: string | null
+  service: {
+    title: string
+    duration_minutes: number
+  } | null
+}
+
 export default async function MyAppointmentsPage() {
   const supabase = await createClient()
 
@@ -19,22 +45,30 @@ export default async function MyAppointmentsPage() {
     redirect("/auth/login")
   }
 
-  // Busca os agendamentos do usuário, incluindo detalhes do serviço
-  const { data: appointments, error } = await supabase
+  const { data, error } = await supabase
     .from("appointments")
     .select("id, appointment_date, status, services(title, duration_minutes)")
     .eq("user_id", user.id)
-    .order("appointment_date", { ascending: false }) // Mais recentes primeiro
+    .order("appointment_date", { ascending: false })
 
   if (error) {
     console.error("Erro ao buscar agendamentos:", error)
-    // Você pode redirecionar para uma página de erro ou mostrar uma mensagem
     redirect("/dashboard")
   }
 
-  const allAppointments = appointments || []
-  const upcomingAppointments = allAppointments.filter((apt) => isAfter(parseISO(apt.appointment_date), new Date()))
-  const pastAppointments = allAppointments.filter((apt) => !isAfter(parseISO(apt.appointment_date), new Date()))
+  const allAppointments: NormalizedAppointment[] = ((data || []) as AppointmentRow[]).map((apt) => ({
+    id: apt.id,
+    appointment_date: apt.appointment_date,
+    status: apt.status,
+    service: Array.isArray(apt.services) ? apt.services[0] ?? null : apt.services,
+  }))
+
+  const upcomingAppointments = allAppointments.filter((apt) =>
+    isAfter(parseISO(apt.appointment_date), new Date())
+  )
+  const pastAppointments = allAppointments.filter((apt) =>
+    !isAfter(parseISO(apt.appointment_date), new Date())
+  )
 
   const getStatusBadge = (status: string | null) => {
     if (!status) return <Badge variant="secondary">Indefinido</Badge>
@@ -50,14 +84,18 @@ export default async function MyAppointmentsPage() {
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
-  const AppointmentCard = ({ appointment }: { appointment: (typeof allAppointments)[0] }) => (
+  const AppointmentCard = ({ appointment }: { appointment: NormalizedAppointment }) => (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-4 flex justify-between items-center">
         <div className="space-y-1">
-          <p className="font-semibold text-navy">{appointment.services?.title}</p>
+          <p className="font-semibold text-navy">
+            {appointment.service?.title || "Consulta agendada"}
+          </p>
           <p className="text-sm text-gray-600 flex items-center">
             <Calendar className="h-4 w-4 mr-2" />
-            {format(parseISO(appointment.appointment_date), "dd 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR })}
+            {format(parseISO(appointment.appointment_date), "dd 'de' MMMM, yyyy 'às' HH:mm", {
+              locale: ptBR,
+            })}
           </p>
         </div>
         {getStatusBadge(appointment.status)}
@@ -93,7 +131,6 @@ export default async function MyAppointmentsPage() {
           </Card>
         ) : (
           <div className="space-y-8">
-            {/* Próximas Consultas */}
             <section>
               <h2 className="text-2xl font-semibold text-navy mb-4 flex items-center">
                 <Calendar className="h-6 w-6 mr-3 text-turquoise" />
@@ -108,7 +145,6 @@ export default async function MyAppointmentsPage() {
               </div>
             </section>
 
-            {/* Histórico de Consultas */}
             <section>
               <h2 className="text-2xl font-semibold text-navy mb-4 flex items-center">
                 <History className="h-6 w-6 mr-3 text-turquoise" />

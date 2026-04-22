@@ -8,6 +8,29 @@ import { format, isAfter } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { signOut } from "../auth/actions"
 
+type AppointmentRow = {
+  id: string
+  appointment_date: string
+  status: string | null
+  services:
+    | {
+        title: string
+      }
+    | {
+        title: string
+      }[]
+    | null
+}
+
+type NormalizedAppointment = {
+  id: string
+  appointment_date: string
+  status: string | null
+  service: {
+    title: string
+  } | null
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 
@@ -22,45 +45,49 @@ export default async function DashboardPage() {
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
   if (!profile) {
-    // Isso pode acontecer se o gatilho de criação de perfil falhar ou atrasar.
-    // Redirecionar para o login é uma alternativa segura.
     redirect("/auth/login")
   }
 
-  // Se o usuário for um admin, redireciona para o painel de admin
   if (profile.role === "admin") {
     redirect("/admin")
   }
 
-  // Defina os campos que indicam se o perfil está completo
   const requiredFields = [
     profile.gender,
     profile.emergency_contact_name,
     profile.main_complaint,
   ]
 
-  // Se algum desses estiver vazio ou nulo → redireciona para completar cadastro
-  const isProfileComplete = requiredFields.every(field => field && field !== "")
+  const isProfileComplete = requiredFields.every((field) => field && field !== "")
   if (!isProfileComplete) {
     redirect("/dashboard/complete-profile")
   }
 
-
-  // Busca os agendamentos para o dashboard
-  const { data: appointments } = await supabase
+  const { data } = await supabase
     .from("appointments")
-    .select("*, services(*)")
+    .select("id, appointment_date, status, services(title)")
     .eq("user_id", user.id)
     .order("appointment_date", { ascending: true })
 
-  const allAppointments = appointments || []
-  const upcomingAppointments = allAppointments.filter(apt => isAfter(new Date(apt.appointment_date), new Date()))
-  const pastAppointments = allAppointments.filter(apt => !isAfter(new Date(apt.appointment_date), new Date()))
+  const allAppointments: NormalizedAppointment[] = ((data || []) as AppointmentRow[]).map((apt) => ({
+    id: apt.id,
+    appointment_date: apt.appointment_date,
+    status: apt.status,
+    service: Array.isArray(apt.services) ? apt.services[0] ?? null : apt.services,
+  }))
+
+  const upcomingAppointments = allAppointments.filter((apt) =>
+    isAfter(new Date(apt.appointment_date), new Date())
+  )
+  const pastAppointments = allAppointments.filter((apt) =>
+    !isAfter(new Date(apt.appointment_date), new Date())
+  )
+
   const nextAppointment = upcomingAppointments[0]
   const upcomingAppointmentsCount = upcomingAppointments.length
   const pastAppointmentsCount = pastAppointments.length
 
-  const getStatusCardClass = (status: string | undefined) => {
+  const getStatusCardClass = (status: string | undefined | null) => {
     if (!status) return ""
     const statusConfig = {
       scheduled: "bg-blue-50 border-blue-200",
@@ -136,7 +163,8 @@ export default async function DashboardPage() {
                         {format(new Date(nextAppointment.appointment_date), "dd 'de' MMMM", { locale: ptBR })}
                       </div>
                       <p className="text-xs text-gray-600">
-                        {format(new Date(nextAppointment.appointment_date), "HH:mm'h'")} - {nextAppointment.services.title}
+                        {format(new Date(nextAppointment.appointment_date), "HH:mm'h'")} -{" "}
+                        {nextAppointment.service?.title || "Consulta agendada"}
                       </p>
                     </CardContent>
                   </Card>
