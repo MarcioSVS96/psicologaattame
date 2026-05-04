@@ -57,7 +57,7 @@ export default function RootLayout({
               "@type": "ProfessionalService",
               "name": "Beatriz Attame Psicologia",
               "url": "https://www.psicologabrasil.com",
-              "logo": "https://www.psicologabrasil.com/rs.webp",
+              "logo": "https://www.psicologabrasil.com/7.png",
               "sameAs": [
                 "https://www.linkedin.com/in/beatrizattame",
                 "https://www.instagram.com/beatrizattame",
