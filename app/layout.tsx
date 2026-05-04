@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     siteName: "Beatriz Attame Psicologia",
     images: [
       {
-        url: "https://www.psicologabrasil.com/7.png", // URL absoluta atualizada
+        url: "https://www.psicologabrasil.com/7.webp", // URL absoluta atualizada
         width: 1200,
         height: 630,
         alt: "Beatriz Attame - Psicóloga",
@@ -57,7 +57,7 @@ export default function RootLayout({
               "@type": "ProfessionalService",
               "name": "Beatriz Attame Psicologia",
               "url": "https://www.psicologabrasil.com",
-              "logo": "https://www.psicologabrasil.com/7.png",
+              "logo": "https://www.psicologabrasil.com/7.webp",
               "sameAs": [
                 "https://www.linkedin.com/in/beatrizattame",
                 "https://www.instagram.com/beatrizattame",
